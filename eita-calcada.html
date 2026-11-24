@@ -289,7 +289,7 @@ function baguete(s=1){const g=new THREE.Group();const b=new THREE.Mesh(new THREE
 function bolo(){const g=new THREE.Group();const p=new THREE.Mesh(new THREE.CylinderGeometry(.02,.12,.12,8),toonM({color:0xe9e9e9}));p.position.y=.06;g.add(p);const a=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.1,12),toonM({color:0x8a4a2a}));a.position.y=.17;g.add(a);const b=new THREE.Mesh(new THREE.CylinderGeometry(.165,.165,.05,12),toonM({color:pick([0xff9ec7,0xffffff,0xffd166])}));b.position.y=.245;g.add(b);const c=new THREE.Mesh(new THREE.SphereGeometry(.03,6,4),toonM({color:0xd62828}));c.position.y=.29;g.add(c);return g}
 function buildPadaria(){const x0=-33,x1=-25,zf=-6.5,wm=toonM({color:0xf3dcb2}),wi=toonM({color:0xfff4e0}),wood=toonM({color:0x8a5a32}),trim=toonM({color:0x7a3e1d});
   box(x0,x0+.4,0,4,-14,zf,wm);box(x1-.4,x1,0,4,-14,zf,wm);box(x0,x1,0,4,-14,-13.6,wi);box(x0+.4,-29.6,0,4,-6.8,zf,wm);box(-28.4,x1-.4,0,4,-6.8,zf,wm);box(-29.6,-28.4,2.7,4,-6.8,zf,wm);
-  for(const x of [-29.7,-28.3])box(x-.1,x+.1,0,2.8,-6.85,-6.4,trim);box(-29.8,-28.2,2.7,2.9,-6.85,-6.4,trim);box(x0,-29.8,0,.5,zf-.02,zf+.05,trim);box(-28.2,x1,0,.5,zf-.02,zf+.05,trim);
+  for(const x of [-29.7,-28.3])box(x-.12,x+.12,0,2.8,-6.86,-6.4,trim);box(-29.82,-28.18,2.68,2.9,-6.86,-6.4,trim);box(x0,-29.8,0,.5,zf-.02,zf+.05,trim);box(-28.2,x1,0,.5,zf-.02,zf+.05,trim);
   const c=box(x0,x1,3.95,4.15,-14,zf+.3,toonM({color:0xe9d2a8}));c.castShadow=false;
   const up=archTex(8,3.4,(x,R)=>{R(0,0,8,3.4,'#f3dcb2');for(const f of [.2,.5,.8]){R(8*f-.7,.8,1.4,1.8,'#fff');R(8*f-.6,.9,1.2,1.6,'#6fa8d6');R(8*f-.04,.9,.08,1.6,'#fff');R(8*f-1.15,.8,.4,1.8,'#c0392b');R(8*f+.75,.8,.4,1.8,'#c0392b')}R(0,3.1,8,.3,'#fff4e0')});
   const ub=new THREE.Mesh(new THREE.BoxGeometry(8,3.4,7.5),[wm,wm,wm,wm,toonM({map:up}),wm]);ub.position.set(-29,4.15+1.7,-10.25);ub.castShadow=true;world.add(ub);
@@ -505,11 +505,12 @@ function bump(){if(audio)beep(140,.12,'sine',.12);pop(pick(['TUM!','PLOFT!','TÓ
 function blocked(m,now){const bs=barrierAt(P.x+fwd(P.yaw).x*.5,P.z+fwd(P.yaw).z*.5).concat(barrierAt(P.x,P.z)).filter(b=>b.kind==='bloqueio'||b.kind==='risco'||b.help);
   const b=bs.find(b=>b.kind==='bloqueio'||b.help);if(b){G.lastBlock=b;G.blockT=now;if(!G.cardShown?.has(b.id)){(G.cardShown=G.cardShown||new Set()).add(b.id);showCard(b);return}toast('Barreira: '+b.title+'. Toque em “Pedir ajuda” ou procure outro caminho.',2500);return}
   if(m.why==='degrau')toast(m.dh>.1?'Degrau ou meio-fio: a cadeira não passa.':'Desnível: as rodinhas da frente travam.',1800);else toast('Passagem bloqueada.',1200)}
+function clearAround(x,z){for(const p of people){if(p.fixed||Math.hypot(p.x-x,p.z-z)>1.6)continue;p.s+=p.dir*3.2;if(p.ax==='x')p.x=p.s;else p.z=p.s;p.g.position.x=p.x;p.g.position.z=p.z}}
 function askHelp(){const b=G.card&&G.card.help?G.card:(G.lastBlock&&performance.now()-G.blockT<6000?G.lastBlock:null);if(!b||!b.help){const q=zoneAt(W,P.x,P.z),id=q&&q.id,ex=[[['praca','rampaPraca','degrau'],{x:-5,z:16,yaw:0}],[['padaria','portaPad'],{x:-29,z:-5,yaw:-Math.PI/2}],[['lab','portaLab'],{x:5,z:-20,yaw:0}],[['plataforma','patamar','rampaPosto','patio'],{x:5,z:22,yaw:0}]].find(e=>e[0].includes(id))||(q&&(q.s==='pedrisco'||q.s==='grama')?[0,{x:-5,z:16,yaw:0}]:null);
-    if(ex){closeCard();G.help++;Object.assign(P,{...ex[1],v:0});P.h=hAt(W,P.x,P.z);toast('Alguém ajudou você a sair daí.',3000);return}toast('Não há uma barreira que precise de ajuda aqui.',1800);return}
-  closeCard();G.help++;Object.assign(P,{x:b.help.x,z:b.help.z,yaw:b.help.yaw,v:0});P.h=hAt(W,P.x,P.z);G.seen.add(b.id);toast('Alguém ajudou você a passar. Sem ajuda, você ficaria parado aqui.',3500)}
+    if(ex){closeCard();G.help++;Object.assign(P,{...ex[1],v:0});P.h=hAt(W,P.x,P.z);clearAround(P.x,P.z);toast('Alguém ajudou você a sair daí.',3000);return}toast('Não há uma barreira que precise de ajuda aqui.',1800);return}
+  closeCard();G.help++;Object.assign(P,{x:b.help.x,z:b.help.z,yaw:b.help.yaw,v:0});P.h=hAt(W,P.x,P.z);clearAround(P.x,P.z);G.seen.add(b.id);toast('Alguém ajudou você a passar. Sem ajuda, você ficaria parado aqui.',3500)}
 function missionDone(){const M=W.M[G.mi];G.done.push({t:M.t,at:G.time});G.mi++;pop(G.mi>=W.M.length?'CONSEGUI!':'UFA!',frontOf(1.6,1.4),'burst',1500);if(G.mi===5)setTimeout(spawnBus,600);if(M.cadeira){G.nova=true;trocarCadeira(true);pop('CADEIRA NOVA!',frontOf(1.6,1.6),'burst',2200);setTimeout(()=>toast('Cadeira nova: empurrar gasta 30% menos energia, ela rola mais leve e gira com mais facilidade.',6000),400)}if(audio){beep(523,.15,'triangle',.15);setTimeout(()=>beep(784,.25,'triangle',.15),150)}
-  if(M.out){Object.assign(P,{x:M.out.x,z:M.out.z,yaw:M.out.yaw,v:0});P.h=hAt(W,P.x,P.z);G.help++}
+  if(M.out){Object.assign(P,{x:M.out.x,z:M.out.z,yaw:M.out.yaw,v:0});P.h=hAt(W,P.x,P.z);clearAround(P.x,P.z);G.help++}
   if(G.mi>=W.M.length){finish();return}showCard({kind:'missao',title:'Missão concluída: '+M.t,aconteceu:M.fim+(M.out?' '+M.out.txt:''),next:W.M[G.mi]});setBeacon()}
 
 /* cartões e avisos */
@@ -681,7 +682,7 @@ function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresentin
   if(HD.pf[0]&&HD.pf[0]===HD.pf[1]&&Math.abs(wR-wL)<.4*Math.max(Math.abs(wR),Math.abs(wL))){const m=(wL+wR)/2;wL=wR=m}
   P.v=(wL+wR)/2;P.wr=Math.max(-.9,Math.min(.9,(wR-wL)/T));return braking}
 
-function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
+function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp||src.hand)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
     if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;
     if(h==='right'){if(Math.abs(sx)>.7&&snapReady){P.yaw-=Math.sign(sx)*Math.PI/6;snapReady=false}else if(Math.abs(sx)<.3)snapReady=true}else vrIn.turn+=-sx*(Math.abs(sx)>.25?1:0);
     const key=h+'|';const a=b[4]?.pressed,bb=b[5]?.pressed;if(a&&!btnPrev[key+'a']&&G&&G.card)closeCard();else if(b[0]?.pressed&&!btnPrev[key+'t']&&G&&G.card)closeCard();if(bb&&!btnPrev[key+'b']&&G)askHelp();btnPrev[key+'a']=a;btnPrev[key+'b']=bb;btnPrev[key+'t']=b[0]?.pressed}
@@ -762,7 +763,7 @@ function updTraffic(dt){updSem(dt);for(const c of traffic){let want=c===bus?(bus
       if(bus.state==='vai'){c.l+=(1.8-c.l)*Math.min(1,dt);if(c.s>64){lifeG.remove(c.g);traffic.splice(traffic.indexOf(c),1);bus=null;continue}}}
     else{const lim2=c.ax==='x'?62:56;if(c.s*c.dir>lim2){let ns=-lim2*c.dir;for(let k=0;k<12&&traffic.some(o=>o!==c&&o.ax===c.ax&&Math.abs(o.l-c.l)<1.2&&Math.abs(o.s-ns)<(o.L+c.L)/2+3);k++)ns-=c.dir*6;c.s=ns;c.v=6}}
     cPos(c);for(const w of c.g.userData.wheels)w.rotation.y-=c.v*dt/.33}}
-function hitDyn(x,z,r){for(const p of people)if(Math.hypot(x-p.x,z-p.z)<r+p.r)return{kind:'pessoa'};for(const c of traffic){const hw=c===bus?1.25:.95,a=c.ax==='x'?x-c.x:z-c.z,b=c.ax==='x'?z-c.z:x-c.x;if(Math.abs(a)<c.L/2+r&&Math.abs(b)<hw+r)return{kind:'carro'}}return null}
+function hitDyn(x,z,r){for(const p of people)if(Math.hypot(x-p.x,z-p.z)<r+p.r&&Math.hypot(P.x-p.x,P.z-p.z)>=r+p.r)return{kind:'pessoa'};for(const c of traffic){const hw=c===bus?1.25:.95,a=c.ax==='x'?x-c.x:z-c.z,b=c.ax==='x'?z-c.z:x-c.x;if(Math.abs(a)<c.L/2+r&&Math.abs(b)<hw+r)return{kind:'carro'}}return null}
 /* vento, folhas, pássaros, nuvens */
 let wind=0,windT=8,windDir=1;const crowns=[];
 const leafG=new THREE.PlaneGeometry(.12,.08),leaves=[];

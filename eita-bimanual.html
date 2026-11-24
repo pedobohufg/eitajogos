@@ -491,7 +491,9 @@ function spawn(now){const c=G.c;G.flip*=-1;
     G.target={kind:'pair',tg,t:now,pop:now}}}
 function trayGrab(T,now){T.state='held';const H=handsLR();T.apG={L:H.L&&H.L.ap,R:H.R&&H.R.ap};T.ph0=null;T.pitch=0;if(!T.grabT)T.grabT=now;T.lastGrab=now;T.grabs++;buzzAll();if(G.c.som&&ac)tone(880,.07,'sine',.08)}
 function trayRelease(T,now){const l=W2L(T.tr.position);T.state='fall';T.vel.set(0,0,0);T.tr.quaternion.copy(station.quaternion);
-  if(Math.abs(l.x-D.x)<MW+.04&&Math.abs(l.z-D.z)<MD+.04&&l.y>destY-.03&&l.y<destY+.18){T.state='settle';T.st=now;T.from=T.tr.position.clone();T.to=L2W(new V3(D.x,destY+.011,D.z))}else T.drops++}
+  if(Math.abs(l.x-D.x)<MW+.04&&Math.abs(l.z-D.z)<MD+.04&&l.y>destY-.03&&l.y<destY+.18){T.state='settle';T.st=now;T.from=T.tr.position.clone();T.to=L2W(new V3(D.x,destY+.011,D.z))}else{T.drops++;
+    /* soltou fora do destino: as bolinhas saltam da bandeja */
+    const tr=T.tr,its=tr.userData.items;while(its.length){const it=its.pop(),wp=new V3();it.getWorldPosition(wp);tr.remove(it);it.position.copy(wp);it.scale.setScalar(.028);items.add(it);spill.push({m:it,v:new V3(rand(-.35,.35),rand(.4,.9),rand(-.35,.35)),t:now});T.spilled++}T.allOut=true}}
 const _x=new V3(),_y=new V3(),_z=new V3(),_mm=new THREE.Matrix4();
 
 /* bolinhas rolam na bandeja conforme a inclinação; caem pela borda quando passa do limite */
@@ -525,9 +527,13 @@ function stepTray(T,now,dt){const tr=T.tr,c=G.c,H=handsLR(),hs=tr.userData.handl
   if(T.state==='settle'){const k=Math.min(1,(now-T.st)/220);tr.position.lerpVectors(T.from,T.to,k);if(k>=1)finishTrial(now,'Entregue');return}
   if(T.state==='fall'){T.vel.y-=9.8*dt;const pl=W2L(tr.position);tr.position.addScaledVector(T.vel,dt);const l=W2L(tr.position);
     const surf=onShelf&&Math.abs(l.x-D.x)<.25&&Math.abs(l.z-D.z)<.15?destY:(Math.abs(l.x)<.475&&l.z<-.15&&l.z>-.75?topY:null);
-    if(surf!=null&&l.y-.011<=surf&&pl.y-.011>=surf-.01){l.y=surf+.011;tr.position.copy(L2W(l));T.state='table';T.hold=0;if(G.c.som&&ac)tone(300,.06,'sine',.05);return}
+    if(surf!=null&&l.y-.011<=surf&&pl.y-.011>=surf-.01){l.y=surf+.011;tr.position.copy(L2W(l));T.state='table';T.hold=0;if(T.allOut&&!tr.userData.items.length){finishTrial(now,'Derrubou');return}if(G.c.som&&ac)tone(300,.06,'sine',.05);return}
     if(tr.position.y<=.05){tr.position.y=.05;finishTrial(now,'Caiu da mesa')}}}
-function updSpill(now,dt){for(let i=spill.length-1;i>=0;i--){const p=spill[i];p.v.y-=9.8*dt;p.m.position.addScaledVector(p.v,dt);const l=W2L(p.m.position),onT=station.visible&&Math.abs(l.x)<.475&&l.z<-.15&&l.z>-.75;const fl=onT?topY+.028:.04+.028;if(p.m.position.y<=fl&&(onT?l.y>topY-.05:true)){p.m.position.y=fl;spill.splice(i,1)}}}
+function updSpill(now,dt){for(let i=spill.length-1;i>=0;i--){const p=spill[i];p.v.y-=9.8*dt;p.m.position.addScaledVector(p.v,dt);const l=W2L(p.m.position),onT=station.visible&&Math.abs(l.x)<.475&&l.z<-.15&&l.z>-.75;const fl=onT?topY+.028:.04+.028;
+  if(p.m.position.y<=fl&&(onT?l.y>topY-.05:true)){p.m.position.y=fl;
+    /* quica até perder a força e depois rola até parar */
+    if(p.v.y<-.55){p.v.y*=-.5;p.v.x*=.8;p.v.z*=.8;if(G&&G.c.som&&ac)tone(500+Math.random()*250,.04,'sine',.04)}
+    else{p.v.y=0;const k=Math.pow(.2,dt);p.v.x*=k;p.v.z*=k;if(Math.hypot(p.v.x,p.v.z)<.03)spill.splice(i,1)}}}}
 function stepPair(T,now){const H=handsLR(),k=Math.min(1,(now-T.pop)/250);
   for(const g of T.tg){g.m.scale.setScalar(.04*k*(g.hitT?1.25:1));if(g.hitT)g.m.material.emissiveIntensity=1.4;
     if(!g.hitT&&G.mode==='xr'){const h=g.s<0?H.L:H.R;if(h&&h.pt.distanceTo(g.pos)<.04+.04){g.hitT=now;if(G.c.som&&ac)tone(g.s<0?660:880,.12,'triangle',.12);buzzAll()}}}
