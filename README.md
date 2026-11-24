@@ -21,7 +21,8 @@ A página inicial (`index.html`) reúne todos os jogos. Nela se escolhe o pacien
 
 - **Online:** publicado pelo GitHub Pages em `https://pedobohufg.github.io/eitajogos/`, quando o Pages estiver ativado.
 - **No computador:** abra o `index.html` num navegador recente. Fora do VR, os jogos rodam em modo de teste com mouse e teclado.
-- **No Meta Quest 3:** abra o endereço no navegador do Quest e toque em "Entrar em VR".
+- **No Meta Quest 3:** abra o endereço no navegador do Quest e toque em "Entrar em VR". As mãos aparecem translúcidas: azuis normalmente e laranja quando estão segurando algo. A opção "Ver a sala real (passthrough)" vem desligada, para o cenário do jogo aparecer.
+- **EITA! Calçada no VR:** segure os aros das rodas, fechando a mão ou apertando o botão lateral do controle, e empurre para a frente. Cada mão move a roda do seu lado. Para virar, empurre um aro mais que o outro. Segurar os aros parados freia a cadeira. O joystick continua funcionando como alternativa.
 
 ## Dados
 

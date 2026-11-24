@@ -168,7 +168,7 @@ pre,.scroll{overflow-x:auto}code{overflow-wrap:anywhere}
       <label>Limite por alvo<select id="limite"><option value="5">5 s</option><option value="8" selected>8 s</option><option value="12">12 s</option><option value="20">20 s</option></select></label>
     </div>
     <label>Duração da sessão<select id="dur"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="180">3 min</option><option value="300">5 min</option></select></label>
-    <label class="chk"><input type="checkbox" id="pt" checked> Passthrough (ver a sala real, se disponível)</label>
+    <label class="chk"><input type="checkbox" id="pt"> Ver a sala real (passthrough). Desligado: você fica no cenário do jogo</label>
     <label class="chk"><input type="checkbox" id="som" checked> Sons de acerto</label>
     <label class="chk"><input type="checkbox" id="amb" checked> Som ambiente (passarinhos, ondas ou grilos)</label>
   </form>
@@ -184,7 +184,7 @@ const $=id=>document.getElementById(id), V3=THREE.Vector3, D2R=Math.PI/180;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const fmt=(n,d=1)=>n==null?'–':n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const BANDS={baixa:[-35,-5],media:[-10,20],alta:[15,50],ampla:[-35,50]};
-const IDS=['tema','visual','modo','vel','h0','prog','ficar','amb','pid','mao','altura','alcance','abertura','tamanho','perm','limite','dur','pt','som'];
+const IDS=['tema','visual','modo','vel','h0','prog','ficar','amb','pid','mao','altura','alcance','abertura','tamanho','perm','limite','dur','som'];
 
 /* ajustes lembrados */
 try{const s=JSON.parse(localStorage.getItem('eitaAlcance')||'{}');for(const k of IDS){if(k in s){const e=$(k);e.type==='checkbox'?e.checked=s[k]:e.value=s[k]}}}catch(e){}
@@ -408,6 +408,37 @@ for(let i=0;i<2;i++){
   ctl.addEventListener('disconnected',()=>{st.src=null;tip.visible=false});
   inputs.push(st);
 }
+/* mãos translúcidas (rastreamento das mãos): desenha as articulações e os ossos de cada mão */
+function ghostHands(T,renderer,stateOf,handOf,root){
+ const FG=['thumb','index-finger','middle-finger','ring-finger','pinky-finger'];
+ const chain=f=>f==='thumb'?['wrist','thumb-metacarpal','thumb-phalanx-proximal','thumb-phalanx-distal','thumb-tip']:['wrist',f+'-metacarpal',f+'-phalanx-proximal',f+'-phalanx-intermediate',f+'-phalanx-distal',f+'-tip'];
+ const JN=[...new Set(FG.flatMap(chain))],BN=[];
+ for(const f of FG){const c=chain(f);for(let k=0;k<c.length-1;k++)BN.push([c[k],c[k+1]])}
+ const PF=['index-finger','middle-finger','ring-finger','pinky-finger'];
+ for(let k=0;k<3;k++)BN.push([PF[k]+'-phalanx-proximal',PF[k+1]+'-phalanx-proximal']);
+ BN.push(['thumb-phalanx-proximal','index-finger-phalanx-proximal']);
+ const PALM=['index-finger-metacarpal','index-finger-phalanx-proximal','middle-finger-phalanx-proximal','ring-finger-phalanx-proximal','pinky-finger-phalanx-proximal','pinky-finger-metacarpal','wrist'];
+ const COL=[0x5c8dff,0x2fd6b5,0xff8a3d];
+ const H=[0,1].map(()=>{const mat=new T.MeshStandardMaterial({color:0xeef3ff,emissive:COL[0],emissiveIntensity:.35,roughness:.5,transparent:true,opacity:.5,depthWrite:false});
+  const sph=new T.InstancedMesh(new T.SphereGeometry(1,12,8),mat,JN.length),cyl=new T.InstancedMesh(new T.CylinderGeometry(1,1,1,10),mat,BN.length);
+  const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(new Float32Array(PALM.length*3+3),3));const idx=[];for(let k=0;k<PALM.length;k++)idx.push(PALM.length,k,(k+1)%PALM.length);pg.setIndex(idx);
+  const palm=new T.Mesh(pg,new T.MeshStandardMaterial({color:0xeef3ff,emissive:COL[0],emissiveIntensity:.35,roughness:.6,transparent:true,opacity:.32,depthWrite:false,side:T.DoubleSide}));
+  for(const m of [sph,cyl,palm]){m.frustumCulled=false;m.visible=false;m.renderOrder=5;root.add(m)}
+  return{mat,sph,cyl,palm,st:-1}});
+ const m4=new T.Matrix4(),q=new T.Quaternion(),q0=new T.Quaternion(),up=new T.Vector3(0,1,0),a=new T.Vector3(),b=new T.Vector3(),d=new T.Vector3(),s=new T.Vector3(),c=new T.Vector3();
+ function upd(){for(let i=0;i<2;i++){const h=H[i],hand=handOf(i),J=hand&&hand.joints,w=J&&J['wrist'];
+   const on=!!(renderer.xr.isPresenting&&w&&w.visible!==false&&J['index-finger-tip']&&J['index-finger-tip'].visible!==false);
+   h.sph.visible=h.cyl.visible=h.palm.visible=on;if(!on)continue;
+   const st=stateOf(i)|0;if(st!==h.st){h.st=st;h.mat.emissive.setHex(COL[st]);h.palm.material.emissive.setHex(COL[st]);h.mat.opacity=st===2?.62:.5}
+   JN.forEach((n,k)=>{const j=J[n];if(!j)return;j.getWorldPosition(a);const r=(j.jointRadius||.008)*1.1;m4.compose(a,q0,s.set(r,r,r));h.sph.setMatrixAt(k,m4)});
+   BN.forEach(([n1,n2],k)=>{const j1=J[n1],j2=J[n2];if(!j1||!j2)return;j1.getWorldPosition(a);j2.getWorldPosition(b);d.subVectors(b,a);const L=d.length()||1e-4;q.setFromUnitVectors(up,d.multiplyScalar(1/L));const r=Math.min(j1.jointRadius||.008,j2.jointRadius||.008)*.95;m4.compose(c.addVectors(a,b).multiplyScalar(.5),q,s.set(r,L,r));h.cyl.setMatrixAt(k,m4)});
+   h.sph.instanceMatrix.needsUpdate=h.cyl.instanceMatrix.needsUpdate=true;
+   const P=h.palm.geometry.attributes.position;c.set(0,0,0);PALM.forEach((n,k)=>{J[n].getWorldPosition(a);P.setXYZ(k,a.x,a.y,a.z);c.add(a)});c.multiplyScalar(1/PALM.length);P.setXYZ(PALM.length,c.x,c.y,c.z);P.needsUpdate=true;h.palm.geometry.computeVertexNormals();h.palm.geometry.computeBoundingSphere()}}
+ const orig=renderer.render.bind(renderer);renderer.render=function(sc,cam){if(sc===root||sc===root.parent)upd();return orig(sc,cam)};
+ return H}
+
+ghostHands(THREE,renderer,i=>0,i=>inputs[i]&&inputs[i].hand,scene);
+
 let tipT=performance.now();
 function updTips(){const nt=performance.now(),dt=Math.max(.001,(nt-tipT)/1000);tipT=nt;for(const s of inputs){const was=s.ok;s.prev=s.prev||new V3();s.prev.copy(s.pos);s.ok=false;if(s.src){if(s.src.hand){const j=s.hand.joints&&s.hand.joints['index-finger-tip'];if(j&&j.visible!==false){j.getWorldPosition(s.pos);s.ok=true}}else if(s.grip.visible){s.pos.copy(OFF);s.grip.localToWorld(s.pos);s.ok=true}}s.tip.visible=s.ok;s.speed=s.ok&&was?s.pos.distanceTo(s.prev)/dt:0;if(s.ok)s.tip.position.copy(s.pos)}}
 function buzz(){for(const s of inputs){try{s.src?.gamepad?.hapticActuators?.[0]?.pulse(.6,70)}catch(e){}}}

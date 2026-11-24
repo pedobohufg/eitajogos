@@ -126,7 +126,7 @@ h2.sec{margin:0;font-size:28px}.small{color:var(--mut);font-size:14px}
 <script type="module">
 import * as THREE from 'three';
 /* ===== mundo: zonas pisáveis, sólidos, barreiras e missões ===== */
-const SURF={asfalto:{c:1.0,crr:.32,n:'asfalto'},calcada:{c:1.0,crr:.30,n:'calçada'},quebrado:{c:3.2,crr:1.4,n:'calçada quebrada'},pedrisco:{c:3.6,crr:1.7,n:'pedrisco'},grama:{c:2.6,crr:1.3,n:'grama'},interno:{c:.9,crr:.25,n:'piso interno'},tatil:{c:1.05,crr:.32,n:'piso tátil'}};
+const SURF={asfalto:{c:1.0,crr:.32,n:'asfalto'},calcada:{c:1.0,crr:.30,n:'calçada'},quebrado:{c:2.0,crr:.8,n:'calçada quebrada'},pedrisco:{c:3.6,crr:1.7,n:'pedrisco'},grama:{c:2.6,crr:1.3,n:'grama'},interno:{c:.9,crr:.25,n:'piso interno'},tatil:{c:1.05,crr:.32,n:'piso tátil'}};
 function buildWorld(mode){const hoje=mode==='hoje',Z=[],S=[],B=[];
   const z=(x0,x1,z0,z1,h,s,id)=>Z.push({x0,x1,z0,z1,h,s,id});
   const sol=(x0,x1,z0,z1,h,col,kind)=>S.push({x0,x1,z0,z1,h,col,kind});
@@ -457,8 +457,8 @@ function trocarCadeira(nova){chair.visible=!nova;chairNew.visible=nova;wheels.le
 /* estado do jogo */
 const START={x:-42,z:-5,yaw:-Math.PI/2};
 let G=null,mode='hoje',results={},keys={},touch={},lookYaw=0,lookPitch=-.34;
-const P={x:0,z:0,yaw:0,v:0,h:.15,energy:100,lastPush:0,stroke:0};
-function newGame(m){mode=m;build(m);trocarCadeira(false);Object.assign(P,{x:START.x,z:START.z,yaw:START.yaw,v:0,energy:100,lastPush:0});P.h=hAt(W,P.x,P.z);
+const P={x:0,z:0,yaw:0,v:0,wr:0,h:.15,energy:100,lastPush:0,stroke:0};
+function newGame(m){mode=m;build(m);trocarCadeira(false);Object.assign(P,{x:START.x,z:START.z,yaw:START.yaw,v:0,wr:0,energy:100,lastPush:0});P.h=hAt(W,P.x,P.z);
   G={m,mi:0,t0:performance.now(),time:0,dist:0,road:0,pushes:0,spent:0,help:0,seen:new Set(),done:[],paused:false,card:null,tip:'',tipUntil:0,lastBlock:null,blockT:0,over:false,risk:new Set()};
   setBeacon();ambStart();$('start').hidden=true;$('end').hidden=true;$('hud').hidden=false;updHud(true);
   toast(W.M[0].t+' · '+W.M[0].d,5000)}
@@ -483,7 +483,8 @@ function physics(dt,now){if(G.paused||G.over)return;
   const stT=G.time*1000;if(want&&(stT-P.stroke>520||stT<P.stroke)){P.stroke=stT;push(want,now)}
   const turn=((keys.a||keys.arrowleft||touch.left)?1:0)-((keys.d||keys.arrowright||touch.right)?1:0)+vrIn.turn;
   if(turn){P.yaw+=turn*1.25*(G.nova?1.35:1)*dt;P.energy=Math.max(0,P.energy-.35*dt*Math.abs(turn))}
-  if(braking){P.v*=Math.pow(.02,dt)}else{P.v-=G_EFF*slope*dt;const crr=sc.crr*dt*(G.nova?.65:1);if(Math.abs(P.v)<=crr){P.v=Math.abs(G_EFF*slope)<sc.crr?0:P.v}else P.v-=Math.sign(P.v)*crr;
+  const hdOn=handDrive(dt,sc,slope,now);if(hdOn)P.yaw+=P.wr*dt;else{P.wr*=Math.pow(.02,dt);P.yaw+=P.wr*dt}
+  if(hdOn){}else if(braking){P.v*=Math.pow(.02,dt)}else{P.v-=G_EFF*slope*dt;const crr=sc.crr*dt*(G.nova?.65:1);if(Math.abs(P.v)<=crr){P.v=Math.abs(G_EFF*slope)<sc.crr?0:P.v}else P.v-=Math.sign(P.v)*crr;
     P.yaw+=side*2.2*dt*(Math.abs(P.v)>.05?1:.4)}
   /* descanso */
   const rest=now-P.lastPush>1200;P.energy=Math.min(100,P.energy+(rest&&(Math.abs(P.v)<.15||braking)?7:1.2)*dt);
@@ -494,6 +495,7 @@ function physics(dt,now){if(G.paused||G.over)return;
     wheelSpin+=P.v*dt/.29}
   if(P.v<-.15&&slope>.04&&!want){if(!G.risk.has('reverso')){G.risk.add('reverso')}toast('A cadeira está voltando de ré!',1200)}
   if(P.v>.95&&slope<-.12&&!G.risk.has('tombo')){G.risk.add('tombo');P.v=.3;toast('Descida íngreme: a cadeira quase tomba para a frente.',3000)}
+  if(q&&q.s==='quebrado'&&Math.abs(P.v)>.12){HD.shake=now+140;if(renderer.xr.isPresenting&&now-HD.hap>150){HD.hap=now;const ss=renderer.xr.getSession();if(ss)for(const src of ss.inputSources){try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.2,45)}catch(e){}}}}
   {const qq=zoneAt(W,P.x,P.z);if(qq&&qq.s==='asfalto'&&qq.id!=='faixa')G.road+=Math.abs(P.v)*dt}
   /* barreiras e missão */
   for(const b of barrierAt(P.x,P.z))if(!G.seen.has(b.id)){G.seen.add(b.id);if(b.id==='quebrado'&&b.kind!=='solucao')pop('CRAC!',frontOf(1,.4),'burst',1000);if(b.kind==='solucao')toast('✓ '+b.title+': '+b.aconteceu,5000);else if(b.kind==='bloqueio'){if(b.id==='rampaPosto'){(G.cardShown=G.cardShown||new Set()).add(b.id);G.pending=b}}else G.pending=b}
@@ -570,14 +572,83 @@ function drawVrHud(){const {x,t}=hudVR;x.clearRect(0,0,1024,300);x.fillStyle='rg
   x.fillStyle='#3a2f55';x.fillRect(30,100,640,34);x.fillStyle=P.energy<25?'#e0412c':P.energy<50?'#e0a21b':'#2e9e5b';x.fillRect(30,100,640*P.energy/100,34);x.fillStyle='#fff';x.font='30px "Instrument Sans",sans-serif';x.fillText('Energia '+fmt(P.energy)+'%',690,128);
   x.fillStyle='#d7ccff';x.fillText(`Tempo ${mmss(G.time)} · ajuda ${G.help}×`,30,186);if(performance.now()<G.tipUntil){x.fillStyle='#ffd27a';x.fillText(G.tip.slice(0,62),30,250)}t.needsUpdate=true}
 const vign=new THREE.Mesh(new THREE.RingGeometry(.11,1.2,48),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:0,depthTest:false,toneMapped:false}));vign.position.z=-.3;vign.renderOrder=30;camera.add(vign);
+/* mãos translúcidas (rastreamento das mãos): desenha as articulações e os ossos de cada mão */
+function ghostHands(T,renderer,stateOf,handOf,root){
+ const FG=['thumb','index-finger','middle-finger','ring-finger','pinky-finger'];
+ const chain=f=>f==='thumb'?['wrist','thumb-metacarpal','thumb-phalanx-proximal','thumb-phalanx-distal','thumb-tip']:['wrist',f+'-metacarpal',f+'-phalanx-proximal',f+'-phalanx-intermediate',f+'-phalanx-distal',f+'-tip'];
+ const JN=[...new Set(FG.flatMap(chain))],BN=[];
+ for(const f of FG){const c=chain(f);for(let k=0;k<c.length-1;k++)BN.push([c[k],c[k+1]])}
+ const PF=['index-finger','middle-finger','ring-finger','pinky-finger'];
+ for(let k=0;k<3;k++)BN.push([PF[k]+'-phalanx-proximal',PF[k+1]+'-phalanx-proximal']);
+ BN.push(['thumb-phalanx-proximal','index-finger-phalanx-proximal']);
+ const PALM=['index-finger-metacarpal','index-finger-phalanx-proximal','middle-finger-phalanx-proximal','ring-finger-phalanx-proximal','pinky-finger-phalanx-proximal','pinky-finger-metacarpal','wrist'];
+ const COL=[0x5c8dff,0x2fd6b5,0xff8a3d];
+ const H=[0,1].map(()=>{const mat=new T.MeshStandardMaterial({color:0xeef3ff,emissive:COL[0],emissiveIntensity:.35,roughness:.5,transparent:true,opacity:.5,depthWrite:false});
+  const sph=new T.InstancedMesh(new T.SphereGeometry(1,12,8),mat,JN.length),cyl=new T.InstancedMesh(new T.CylinderGeometry(1,1,1,10),mat,BN.length);
+  const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(new Float32Array(PALM.length*3+3),3));const idx=[];for(let k=0;k<PALM.length;k++)idx.push(PALM.length,k,(k+1)%PALM.length);pg.setIndex(idx);
+  const palm=new T.Mesh(pg,new T.MeshStandardMaterial({color:0xeef3ff,emissive:COL[0],emissiveIntensity:.35,roughness:.6,transparent:true,opacity:.32,depthWrite:false,side:T.DoubleSide}));
+  for(const m of [sph,cyl,palm]){m.frustumCulled=false;m.visible=false;m.renderOrder=5;root.add(m)}
+  return{mat,sph,cyl,palm,st:-1}});
+ const m4=new T.Matrix4(),q=new T.Quaternion(),q0=new T.Quaternion(),up=new T.Vector3(0,1,0),a=new T.Vector3(),b=new T.Vector3(),d=new T.Vector3(),s=new T.Vector3(),c=new T.Vector3();
+ function upd(){for(let i=0;i<2;i++){const h=H[i],hand=handOf(i),J=hand&&hand.joints,w=J&&J['wrist'];
+   const on=!!(renderer.xr.isPresenting&&w&&w.visible!==false&&J['index-finger-tip']&&J['index-finger-tip'].visible!==false);
+   h.sph.visible=h.cyl.visible=h.palm.visible=on;if(!on)continue;
+   const st=stateOf(i)|0;if(st!==h.st){h.st=st;h.mat.emissive.setHex(COL[st]);h.palm.material.emissive.setHex(COL[st]);h.mat.opacity=st===2?.62:.5}
+   JN.forEach((n,k)=>{const j=J[n];if(!j)return;j.getWorldPosition(a);const r=(j.jointRadius||.008)*1.1;m4.compose(a,q0,s.set(r,r,r));h.sph.setMatrixAt(k,m4)});
+   BN.forEach(([n1,n2],k)=>{const j1=J[n1],j2=J[n2];if(!j1||!j2)return;j1.getWorldPosition(a);j2.getWorldPosition(b);d.subVectors(b,a);const L=d.length()||1e-4;q.setFromUnitVectors(up,d.multiplyScalar(1/L));const r=Math.min(j1.jointRadius||.008,j2.jointRadius||.008)*.95;m4.compose(c.addVectors(a,b).multiplyScalar(.5),q,s.set(r,L,r));h.cyl.setMatrixAt(k,m4)});
+   h.sph.instanceMatrix.needsUpdate=h.cyl.instanceMatrix.needsUpdate=true;
+   const P=h.palm.geometry.attributes.position;c.set(0,0,0);PALM.forEach((n,k)=>{J[n].getWorldPosition(a);P.setXYZ(k,a.x,a.y,a.z);c.add(a)});c.multiplyScalar(1/PALM.length);P.setXYZ(PALM.length,c.x,c.y,c.z);P.needsUpdate=true;h.palm.geometry.computeVertexNormals();h.palm.geometry.computeBoundingSphere()}}
+ const orig=renderer.render.bind(renderer);renderer.render=function(sc,cam){if(sc===root||sc===root.parent)upd();return orig(sc,cam)};
+ return H}
+
+/* ===== VR: mãos translúcidas e impulso da cadeira pelos aros ===== */
+const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],on:[false,false],stroke:[0,0],shake:0,hap:0,tired:false};
+for(let i=0;i<2;i++){const c=renderer.xr.getController(i),g=renderer.xr.getControllerGrip(i),h=renderer.xr.getHand(i);rig.add(c,g,h);HD.grip[i]=g;HD.hand[i]=h;
+  c.addEventListener('connected',e=>{HD.src[i]=e.data});c.addEventListener('disconnected',()=>{HD.src[i]=null;HD.on[i]=false;HD.st[i]=0})}
+ghostHands(THREE,renderer,i=>HD.st[i],i=>HD.hand[i],scene);
+const CO=new THREE.Vector3();let coT=0;
+function alignChair(){const cp=camera.position,ty=Math.max(-.6,Math.min(.6,cp.y-1.15));
+  if(coT<45){CO.set(cp.x,ty,cp.z);coT++}else if(!HD.on[0]&&!HD.on[1]){CO.x+=(cp.x-CO.x)*.004;CO.z+=(cp.z-CO.z)*.004;CO.y+=(ty-CO.y)*.01}
+  chair.position.copy(CO);chairNew.position.copy(CO)}
+const rimHL=[-1,1].map(s=>{const m=new THREE.Mesh(new THREE.TorusGeometry(.265,.014,8,56),new THREE.MeshBasicMaterial({color:0x2fd6b5,transparent:true,opacity:.2,depthWrite:false,toneMapped:false}));m.rotation.y=Math.PI/2;m.visible=false;m.renderOrder=4;rig.add(m);return m});
+function rimC(k,out){const nova=chairNew.visible,s=k?1:-1;return out.set(s*.345,.31,nova?0:.03).add(CO)}
+function updRimHL(){const xr=renderer.xr.isPresenting;for(let k=0;k<2;k++){const m=rimHL[k];m.visible=xr;if(!xr)continue;rimC(k,m.position);let st=0;for(let i=0;i<2;i++)if(HD.src[i]&&HD.side[i]===k)st=Math.max(st,HD.st[i]);
+  m.material.color.setHex(st===2?0xff8a3d:0x2fd6b5);m.material.opacity=[.22,.5,.85][st];m.scale.setScalar(chairNew.visible?1.04:1)}}
+const _p=new THREE.Vector3(),_c=new THREE.Vector3(),TIPS4=['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip'];
+function handDrive(dt,sc,slope,now){if(!renderer.xr.isPresenting)return false;let any=false;const nova=chairNew.visible,R=nova?.27:.26;
+  for(let i=0;i<2;i++){const src=HD.src[i];HD.st[i]=0;if(!src){HD.on[i]=false;continue}
+    const side=src.handedness==='left'?0:src.handedness==='right'?1:i;HD.side[i]=side;
+    let ok=false,grab=false,isHand=false;
+    if(src.hand){const J=HD.hand[i].joints,w=J&&J['wrist'],mp=J&&J['middle-finger-phalanx-proximal'];
+      if(w&&mp&&w.visible!==false){isHand=true;ok=true;_p.copy(w.position).lerp(mp.position,.5);let sum=0,n=0;for(const t of TIPS4){const j=J[t];if(j&&j.visible!==false){sum+=j.position.distanceTo(_p);n++}}
+        const curl=n?sum/n:1,tt=J['thumb-tip'],it=J['index-finger-tip'],pin=tt&&it?tt.position.distanceTo(it.position):1;grab=HD.on[i]?(curl<.095||pin<.045):(curl<.075||pin<.03)}}
+    else if(HD.grip[i].visible){ok=true;_p.copy(HD.grip[i].position);const v=src.gamepad?.buttons?.[1]?.value||0;grab=HD.on[i]?v>.3:v>.55}
+    if(!ok){HD.on[i]=false;continue}
+    rimC(side,_c);const dy=_p.y-_c.y,dz=_p.z-_c.z,rho=Math.hypot(dy,dz);
+    const near=Math.abs(_p.x-_c.x)<.18&&Math.abs(rho-R)<.15;
+    if(isHand&&!HD.on[i]&&!near)grab=false;
+    if(near)HD.st[i]=1;
+    const phi=Math.atan2(-dz,dy);
+    if(grab&&!HD.on[i]){HD.on[i]=true;HD.phi[i]=phi;HD.u[i]=0;HD.stroke[i]=0;try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.35,25)}catch(e){}}
+    else if(!grab&&HD.on[i]){HD.on[i]=false;if(HD.stroke[i]>.08)G.pushes++}
+    if(HD.on[i]){HD.st[i]=2;any=true;let dp=phi-HD.phi[i];if(dp>Math.PI)dp-=2*Math.PI;if(dp<-Math.PI)dp+=2*Math.PI;HD.phi[i]=phi;
+      const ds=Math.max(-.12,Math.min(.12,Math.max(.1,rho)*dp));HD.u[i]+=(ds/Math.max(dt,1e-3)-HD.u[i])*.5;HD.stroke[i]+=Math.max(0,ds)}}
+  if(!any)return false;
+  const T=.62,eff=(G.nova?1.15:1)/(1+(sc.c-1)*.3)*(P.energy<1?.2:1);let wL=P.v-P.wr*T/2,wR=P.v+P.wr*T/2;
+  for(let i=0;i<2;i++){if(!HD.on[i])continue;const side=HD.side[i],w0=side?wR:wL,tgt=Math.max(-1,Math.min(G.nova?2.1:1.8,HD.u[i]*eff)),nw=w0+(tgt-w0)*Math.min(1,dt*14),dw=Math.abs(nw)-Math.abs(w0);
+    if(dw>0){const dir=Math.sign(nw)||1,cost=dw*1.05*sc.c*(1+Math.max(0,dir*slope)*22)*(G.nova?.7:1);P.energy=Math.max(0,P.energy-cost);G.spent+=cost;P.lastPush=now}
+    if(side)wR=nw;else wL=nw}
+  if(P.energy<1&&!HD.tired){HD.tired=true;toast('Sem forças. Solte os aros e descanse um pouco.',2200)}else if(P.energy>10)HD.tired=false;
+  P.v=(wL+wR)/2;P.wr=Math.max(-2.2,Math.min(2.2,(wR-wL)/T));return true}
+
 function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
-    if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;if(b[1]?.pressed)vrIn.brake=true;
+    if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;
     if(h==='right'){if(Math.abs(sx)>.7&&snapReady){P.yaw-=Math.sign(sx)*Math.PI/6;snapReady=false}else if(Math.abs(sx)<.3)snapReady=true}else vrIn.turn+=-sx*(Math.abs(sx)>.25?1:0);
     const key=h+'|';const a=b[4]?.pressed,bb=b[5]?.pressed;if(a&&!btnPrev[key+'a']&&G&&G.card)closeCard();else if(b[0]?.pressed&&!btnPrev[key+'t']&&G&&G.card)closeCard();if(bb&&!btnPrev[key+'b']&&G)askHelp();btnPrev[key+'a']=a;btnPrev[key+'b']=bb;btnPrev[key+'t']=b[0]?.pressed}
   if(G&&G.card){vrIn.up=false}}
 let xrOK=false;
 if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{xrOK=ok;$('bVR').hidden=!ok}).catch(()=>{});
-$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;if(!G)newGame('hoje');s.addEventListener('end',()=>{hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
+$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros das rodas (feche a mão ou aperte o botão lateral) e empurre para a frente. Solte e repita.',8000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.on[0]=HD.on[1]=false;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
 
 /* ===== vida no bairro: pessoas, carros, ônibus, vento, pássaros, onomatopeias e detalhes ===== */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -669,7 +740,19 @@ const clouds=[];
 /* detalhes do bairro */
 function stripeTex(a,b){return tex(256,64,x=>{for(let i=0;i<8;i++){x.fillStyle=i%2?b:a;x.fillRect(i*32,0,32,64)}x.fillStyle='rgba(0,0,0,.25)';x.fillRect(0,56,256,8)})}
 function car(s){const v=vehicle(pick(['hatch','sedan','sedan','hatch','suv']),pick(VCOL));v.position.set((s.x0+s.x1)/2,0,(s.z0+s.z1)/2);const alongZ=(s.z1-s.z0)>(s.x1-s.x0);v.rotation.y=alongZ?(Math.random()<.5?Math.PI/2:-Math.PI/2):(Math.random()<.5?0:Math.PI);world.add(v)}
-function decorate(){
+/* calçada quebrada: placas soltas e inclinadas, buracos, entulho e mato nas frestas */
+function brokenWalk(x0,x1,z0,z1,y,seed){let r=seed;const rnd=()=>{r=(r*16807)%2147483647;return r/2147483647};
+  const slab=std(0xd2cbbf,{roughness:.95}),slab2=std(0xb9b0a2,{roughness:.95}),dark=std(0x3f362f,{roughness:1}),dirt=std(0x6e5a45,{roughness:1}),weed=std(0x5b9a3a,{roughness:.9}),rub=std(0x9a9389,{roughness:1}),S=.5;
+  const M=(g,m,x,yy,z,rx,ry,rz)=>{const o=new THREE.Mesh(g,m);o.position.set(x,yy,z);o.rotation.set(rx||0,ry||0,rz||0);world.add(o);return o};
+  for(let x=x0;x<x1-.01;x+=S)for(let z=z0;z<z1-.01;z+=S){const k=rnd(),cx=x+S/2,cz=z+S/2;
+    if(k<.22){box(x+.03,x+S-.03,y,y+.004,z+.03,z+S-.03,dark);box(x+.12,x+S-.1,y+.004,y+.007,z+.1,z+S-.14,dirt);
+      for(let i=0;i<3;i++)M(new THREE.BoxGeometry(.08+rnd()*.12,.03,.06+rnd()*.1),rub,cx+(rnd()-.5)*.36,y+.012,cz+(rnd()-.5)*.36,(rnd()-.5)*.6,rnd()*3,(rnd()-.5)*.6)}
+    else if(k<.62)M(new THREE.BoxGeometry(S-.035,.05,S-.035),rnd()<.5?slab:slab2,cx,y+.006+rnd()*.03,cz,(rnd()-.5)*.24,(rnd()-.5)*.16,(rnd()-.5)*.24);
+    else M(new THREE.BoxGeometry(S-.03,.03,S-.03),rnd()<.3?slab2:slab,cx,y-.004,cz,0,(rnd()-.5)*.06,0);
+    if(rnd()<.35)for(let i=0;i<4;i++)M(new THREE.ConeGeometry(.018,.07+rnd()*.07,4),weed,x+(rnd()<.5?.02:S-.02)+(rnd()-.5)*.03,y+.04,z+rnd()*S,(rnd()-.5)*.5,0,(rnd()-.5)*.5)}
+  for(let i=0;i<16;i++)M(new THREE.DodecahedronGeometry(.03+rnd()*.05,0),rub,x0+rnd()*(x1-x0),y+.02,z0+rnd()*(z1-z0),rnd()*3,rnd()*3,rnd()*3)}
+
+function decorate(){if(mode==='hoje')brokenWalk(9,16,3.5,6.5,.15,7);
   /* sarjetas e bueiros */
   const sj=std(0x3d4149);for(const zz of [-3.35,3.35])for(const [a,b] of [[-62,-3.5],[3.5,62]])box(a,b,.003,.008,zz-.15,zz+.15,sj);for(const xx of [-3.35,3.35])for(const [a,b] of [[-54,-3.5],[3.5,54]])box(xx-.15,xx+.15,.003,.008,a,b,sj);
   for(const [x,z,ax] of [[-26,-3.3,'x'],[12,3.3,'x'],[35,-3.3,'x'],[-3.3,-20,'z'],[3.3,22,'z']]){const g=std(0x222222);if(ax==='x')box(x-.4,x+.4,.008,.014,z-.18,z+.18,g);else box(x-.18,x+.18,.008,.014,z-.4,z+.4,g)}
@@ -974,11 +1057,11 @@ function building(x0,x1,zf,dir,H,col,style,label,shop=true,opts={}){const A=ARCH
 const ro=new ResizeObserver(()=>{if(renderer.xr.isPresenting)return;const w=fig.clientWidth,h=fig.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();mm.width=mm.clientWidth*devicePixelRatio;mm.height=mm.clientHeight*devicePixelRatio});ro.observe(fig);
 let last=performance.now(),hudT=0;
 renderer.setAnimationLoop(()=>{const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
-  if(renderer.xr.isPresenting)readVR();
+  if(renderer.xr.isPresenting){readVR();alignChair()}updRimHL();
   if(W)updLife(dt,now);
   if(G&&!G.paused&&!G.over){G.time+=dt;physics(dt,now);if(G.pending&&!G.card){showCard(G.pending);G.pending=null}}
   rig.position.set(P.x,P.h,P.z);rig.rotation.y=P.yaw;
-  if(!renderer.xr.isPresenting)camera.rotation.set(lookPitch,lookYaw,0,'YXZ');
+  if(!renderer.xr.isPresenting){camera.rotation.set(lookPitch,lookYaw,0,'YXZ');camera.position.y=1.15+(HD.shake>now?(Math.random()-.5)*.014:0)}
   wheels.forEach(w=>w.rotation.x=-wheelSpin);
   if(beacon){beacon.userData.ar.position.y=2.6+Math.sin(now/300)*.15;beacon.userData.ar.rotation.y+=dt*2}
   vign.material.opacity=renderer.xr.isPresenting?Math.min(.55,Math.abs(P.v)*.35+Math.abs(vrIn.turn)*.4):0;
