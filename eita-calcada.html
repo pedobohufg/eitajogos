@@ -602,7 +602,7 @@ function ghostHands(T,renderer,stateOf,handOf,root){
  return H}
 
 /* ===== VR: mãos translúcidas e impulso da cadeira pelos aros ===== */
-const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],mode:[0,0],dir:[0,0],acc:[0,0],opp:[0,0],still:[0,0],stroke:[0,0],cl:[false,false],lost:[0,0],sp:[new THREE.Vector3(),new THREE.Vector3()],fresh:[true,true],pf:[0,0],pushing:false,shake:0,hap:0,tired:false};
+const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],mode:[0,0],dir:[0,0],acc:[0,0],opp:[0,0],still:[0,0],stroke:[0,0],cl:[false,false],lost:[0,0],sp:[new THREE.Vector3(),new THREE.Vector3()],fresh:[true,true],pf:[0,0],settle:[0,0],pushing:false,shake:0,hap:0,tired:false};
 for(let i=0;i<2;i++){const c=renderer.xr.getController(i),g=renderer.xr.getControllerGrip(i),h=renderer.xr.getHand(i);rig.add(c,g,h);HD.grip[i]=g;HD.hand[i]=h;
   c.addEventListener('connected',e=>{HD.src[i]=e.data;HD.fresh[i]=true;HD.mode[i]=0});c.addEventListener('disconnected',()=>{HD.src[i]=null;HD.mode[i]=0;HD.st[i]=0})}
 ghostHands(THREE,renderer,i=>HD.st[i],i=>HD.hand[i],scene);
@@ -647,6 +647,8 @@ function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresentin
     let ok=false,closed=false,isHand=false;
     if(src.hand){const J=HD.hand[i].joints,w=J&&J['wrist'],mp=J&&J['middle-finger-phalanx-proximal'];
       if(w&&mp&&w.visible!==false){isHand=true;ok=true;_p.copy(w.position).lerp(mp.position,.5);let sum=0,n=0;for(const t of TIPS4){const j=J[t];if(j&&j.visible!==false){sum+=j.position.distanceTo(_p);n++}}
+        /* o movimento é medido no punho, que quase não se mexe quando os dedos fecham */
+        _p.copy(w.position).lerp(mp.position,.2);
         const curl=n?sum/n:1,tt=J['thumb-tip'],it=J['index-finger-tip'],pin=tt&&it?tt.position.distanceTo(it.position):1,was=HD.cl[i];
         closed=was?(curl<.1||pin<.05):(curl<.085||pin<.035)}}
     else if(HD.grip[i].visible){ok=true;_p.copy(HD.grip[i].position);const v=src.gamepad?.buttons?.[1]?.value||0;closed=HD.cl[i]?v>.3:v>.55}
@@ -660,11 +662,12 @@ function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresentin
     if(near)HD.st[i]=1;
     let m=HD.mode[i];
     /* 0 solta · 1 segurando (o 1º movimento decide frente/ré) · 2 voltando a mão (não move a cadeira) */
-    if(m===0){if(closed&&(near||!isHand)){m=1;HD.dir[i]=0;HD.acc[i]=0;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0;try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.35,25)}catch(e){}}}
+    if(m===0){if(closed&&(near||!isHand)){m=1;HD.settle[i]=now+150;HD.dir[i]=0;HD.acc[i]=0;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0;try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.35,25)}catch(e){}}}
     else if(!closed||(isHand&&far)){if(m===1&&HD.stroke[i]>.08)G.pushes++;m=0}
     else if(m===2){if(ds>0){HD.acc[i]+=ds;if(HD.acc[i]>.02&&dx<.3){m=1;HD.dir[i]=1;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0}}else HD.acc[i]=0}
+    else if(m===1&&now<HD.settle[i]){HD.acc[i]=0;HD.u[i]=0}
     else if(m===1){HD.still[i]=Math.abs(ds)<.0016?HD.still[i]+dt:0;
-      if(HD.dir[i]===0){HD.acc[i]+=ds;if(Math.abs(HD.acc[i])>.035)HD.dir[i]=Math.sign(HD.acc[i])}
+      if(HD.dir[i]===0){HD.acc[i]+=ds;if(Math.abs(HD.acc[i])>.05)HD.dir[i]=Math.sign(HD.acc[i])}
       else if(ds*HD.dir[i]<0){HD.opp[i]+=Math.abs(ds);if(HD.opp[i]>.03){if(HD.stroke[i]>.08)G.pushes++;m=2;HD.acc[i]=0}}
       else if(HD.u[i]*HD.dir[i]>.12){HD.opp[i]=Math.max(0,HD.opp[i]-Math.abs(ds));HD.stroke[i]+=Math.abs(ds);HD.pf[i]=HD.dir[i];
         const w0=side?wR:wL,tgt=Math.max(-1,Math.min(G.nova?2.1:1.8,HD.u[i]*eff));let nw=w0;

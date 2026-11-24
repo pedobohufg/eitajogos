@@ -467,12 +467,14 @@ ghostHands(THREE,renderer,i=>inputs[i]&&inputs[i].pinch?2:0,i=>inputs[i]&&inputs
 const thr=()=>G?G.c.sens:.06;const TIPS=['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip'],_w=new V3(),_m=new V3(),_t=new V3();
 function updHands(now){for(const s of inputs){s.ok=false;s.ap=null;
   if(s.src){if(s.src.hand){const J=s.hand.joints,w=J&&J['wrist'],mp=J&&J['middle-finger-phalanx-proximal'],ix=J&&J['index-finger-tip'];
-      if(w&&mp&&w.visible!==false&&mp.visible!==false){w.getWorldPosition(_w);mp.getWorldPosition(_m);s.pt.copy(_w).lerp(_m,.55);let sum=0,n=0;for(const k of TIPS){const j=J[k];if(j&&j.visible!==false){j.getWorldPosition(_t);sum+=_t.distanceTo(s.pt);n++}}if(n>=3){s.ap=sum/n;s.ok=true;s.b.copy(s.pt);if(ix&&ix.visible!==false)ix.getWorldPosition(s.a);else s.a.copy(s.pt)}}}
-   else if(s.grip.visible){s.grip.getWorldPosition(s.pt);s.b.copy(s.pt);s.ok=true}}
+      if(w&&mp&&w.visible!==false&&mp.visible!==false){w.getWorldPosition(_w);mp.getWorldPosition(_m);s.fwd=(s.fwd||new V3()).subVectors(_m,_w).normalize();s.pt.copy(_w).lerp(_m,.55);let sum=0,n=0;for(const k of TIPS){const j=J[k];if(j&&j.visible!==false){j.getWorldPosition(_t);sum+=_t.distanceTo(s.pt);n++}}if(n>=3){s.ap=sum/n;s.ok=true;s.b.copy(s.pt);if(ix&&ix.visible!==false)ix.getWorldPosition(s.a);else s.a.copy(s.pt)}}}
+   else if(s.grip.visible){s.grip.getWorldPosition(s.pt);s.b.copy(s.pt);s.ok=true;s.fwd=(s.fwd||new V3()).set(0,0,-1).applyQuaternion(s.grip.getWorldQuaternion(new THREE.Quaternion()))}}
   let want=s.pinch;
-  if(!s.ok)want=false;else if(s.ap!=null){if(!s.pinch&&s.ap<thr())want=true;else if(s.pinch&&s.ap>thr()+.015)want=false}
-  else{const v=s.src.gamepad?.buttons?.[1]?.value||0;if(!s.pinch&&v>.6)want=true;else if(s.pinch&&v<.35)want=false}
-  s.pinch=want;
+  if(!s.ok)want=false;else if(s.ap!=null){s.apMax=Math.max((s.apMax||0)*.99,s.ap);
+    /* fechar em volta da alça já conta; soltar se adapta à abertura da mão de cada um */
+    if(!s.pinch){if(s.ap<thr()||(s.ap<Math.max(thr(),.085)&&s.apMax-s.ap>.018))want=true}
+    else{s.apMin=Math.min(s.apMin??s.ap,s.ap);const rel=Math.max(s.apMin+.015,Math.min(Math.max(s.apMin+.025,thr()+.015),(s.apOpen||.12)-.012));if(s.ap>rel)want=false}}
+  else{const v=s.src.gamepad?.buttons?.[1]?.value||0;if(!s.pinch&&v>.6)want=true;else if(s.pinch&&v<.35)want=false}  if(want&&!s.pinch){s.apMin=s.ap;s.apOpen=s.apMax}s.pinch=want;
   s.mI.visible=s.ok;s.mI.position.copy(s.b);s.mI.scale.setScalar(1.6);s.mT.visible=false;s.mI.material.emissive.setHex(s.pinch?0x5dff8f:0x8fd0ff)}}
 function buzzAll(){for(const s of inputs){try{s.src?.gamepad?.hapticActuators?.[0]?.pulse(.5,40)}catch(e){}}}
 function handsLR(){const o={L:null,R:null};for(const s of inputs)if(s.ok&&s.src){if(s.src.handedness==='left')o.L=s;else if(s.src.handedness==='right')o.R=s}return o}
@@ -487,21 +489,39 @@ function spawn(now){const c=G.c;G.flip*=-1;
     G.target={kind:'tray',tr,t:now,pop:now,state:'table',vel:new V3(),grabT:0,lastGrab:0,grabs:0,drops:0,spilled:0,tiltSum:0,tiltN:0,tiltMax:0,hdSum:0,over:0,hold:0}}
   else{const a=rand(0,c.abertura)*D2R,el=rand(-10,30)*D2R,d=c.alcance*rand(.85,1),tg=[-1,1].map(s=>{const dir=new V3().addScaledVector(G.f,Math.cos(el)*Math.cos(a)).addScaledVector(G.r,s*Math.cos(el)*Math.sin(a));dir.y+=Math.sin(el);const pos=shoulderOf(s).addScaledVector(dir,d);pos.y=Math.max(pos.y,.4);const m=makeBall(.001);m.position.copy(pos);return{s,m,pos,hitT:0}});
     G.target={kind:'pair',tg,t:now,pop:now}}}
-function trayGrab(T,now){T.state='held';if(!T.grabT)T.grabT=now;T.lastGrab=now;T.grabs++;buzzAll();if(G.c.som&&ac)tone(880,.07,'sine',.08)}
+function trayGrab(T,now){T.state='held';const H=handsLR();T.apG={L:H.L&&H.L.ap,R:H.R&&H.R.ap};T.ph0=null;T.pitch=0;if(!T.grabT)T.grabT=now;T.lastGrab=now;T.grabs++;buzzAll();if(G.c.som&&ac)tone(880,.07,'sine',.08)}
 function trayRelease(T,now){const l=W2L(T.tr.position);T.state='fall';T.vel.set(0,0,0);T.tr.quaternion.copy(station.quaternion);
   if(Math.abs(l.x-D.x)<MW+.04&&Math.abs(l.z-D.z)<MD+.04&&l.y>destY-.03&&l.y<destY+.18){T.state='settle';T.st=now;T.from=T.tr.position.clone();T.to=L2W(new V3(D.x,destY+.011,D.z))}else T.drops++}
 const _x=new V3(),_y=new V3(),_z=new V3(),_mm=new THREE.Matrix4();
+
+/* bolinhas rolam na bandeja conforme a inclinação; caem pela borda quando passa do limite */
+const _f=new V3(),_qp=new THREE.Quaternion(),_qi=new THREE.Quaternion(),_gl=new V3();
+function ballStep(T,tr,dt,now,tilt){const c=G.c,its=tr.userData.items,r=.028,XL=.188-r,ZL=.108-r;
+  _gl.set(0,-9.8,0).applyQuaternion(_qi.copy(tr.quaternion).invert());const gx=_gl.x,gz=_gl.z,stick=9.8*Math.sin(3*D2R),over=tilt>c.tilt;
+  for(let k=its.length-1;k>=0;k--){const it=its[k],v=it.userData.v||(it.userData.v=new V3()),p=it.position;
+    if(Math.hypot(gx,gz)>stick){v.x+=gx*5/7*dt;v.z+=gz*5/7*dt}
+    v.multiplyScalar(Math.pow(.35,dt));p.x+=v.x*dt;p.z+=v.z*dt;let out=false;
+    if(p.x>XL){if(over&&gx>stick)out=true;else{p.x=XL;v.x*=-.25}}else if(p.x<-XL){if(over&&-gx>stick)out=true;else{p.x=-XL;v.x*=-.25}}
+    if(p.z>ZL){if(over&&gz>stick)out=true;else{p.z=ZL;v.z*=-.25}}else if(p.z<-ZL){if(over&&-gz>stick)out=true;else{p.z=-ZL;v.z*=-.25}}
+    if(out){its.splice(k,1);const wp=new V3();it.getWorldPosition(wp);const wv=new V3(v.x,0,v.z).applyQuaternion(tr.quaternion);tr.remove(it);it.position.copy(wp);it.scale.setScalar(.028);items.add(it);spill.push({m:it,v:wv,t:now});T.spilled++;boop()}}
+  for(let a=0;a<its.length;a++)for(let b=a+1;b<its.length;b++){const A=its[a].position,B=its[b].position,dx=B.x-A.x,dz=B.z-A.z,d=Math.hypot(dx,dz)||1e-4,m=2*r-d;
+    if(m>0){const nx=dx/d,nz=dz/d;A.x-=nx*m/2;A.z-=nz*m/2;B.x+=nx*m/2;B.z+=nz*m/2;const va=its[a].userData.v,vb=its[b].userData.v;if(va&&vb){const rel=(vb.x-va.x)*nx+(vb.z-va.z)*nz;if(rel<0){va.x+=rel*nx;va.z+=rel*nz;vb.x-=rel*nx;vb.z-=rel*nz}}}}}
 function stepTray(T,now,dt){const tr=T.tr,c=G.c,H=handsLR(),hs=tr.userData.handles;tr.scale.setScalar(Math.min(1,(now-T.pop)/250));
   if(T.state==='table'){if(G.mode!=='xr')return;const hl=tr.localToWorld(new V3(-HX,.02,0)),hr=tr.localToWorld(new V3(HX,.02,0)),nL=H.L&&H.L.pt.distanceTo(hl)<.075,nR=H.R&&H.R.pt.distanceTo(hr)<.075;
     hs[0].material.emissiveIntensity=nL?1:0;hs[1].material.emissiveIntensity=nR?1:0;
     if(nL&&nR){if(c.segurar==='fechar'?(H.L.pinch&&H.R.pinch):((T.hold=T.hold||now),now-T.hold>250))trayGrab(T,now)}else T.hold=0;return}
   if(T.state==='held'){let L,R;if(G.mode==='xr'){if(!H.L||!H.R){trayRelease(T,now);return}L=H.L.pt;R=H.R.pt;
-      if(c.segurar==='fechar'?(!H.L.pinch||!H.R.pinch):L.distanceTo(R)>2*HX+.14){trayRelease(T,now);return}}
+      const opened=(h,a0)=>h.ap!=null&&a0!=null&&(h.ap>a0+.03||(h.ap>.095&&h.ap>a0+.015));
+      if(c.segurar==='fechar'?(!H.L.pinch||!H.R.pinch):(L.distanceTo(R)>2*HX+.1||opened(H.L,T.apG&&T.apG.L)||opened(H.R,T.apG&&T.apG.R))){trayRelease(T,now);return}}
     else{L=deskH.pt.clone().addScaledVector(G.r,-HX);R=deskH.pt.clone().addScaledVector(G.r,HX)}
-    _x.copy(R).sub(L).normalize();_z.crossVectors(_x,new V3(0,1,0)).normalize();_y.crossVectors(_z,_x);_mm.makeBasis(_x,_y,_z);tr.quaternion.setFromRotationMatrix(_mm);tr.position.copy(L).add(R).multiplyScalar(.5).addScaledVector(_y,-.02);
-    const tilt=Math.abs(Math.asin(Math.max(-1,Math.min(1,_x.y))))*180/Math.PI;T.tiltSum+=tilt;T.tiltN++;T.tiltMax=Math.max(T.tiltMax,tilt);T.hdSum+=Math.abs(L.y-R.y);
+    _x.copy(R).sub(L).normalize();_z.crossVectors(_x,new V3(0,1,0)).normalize();
+    /* inclinação para a frente e para trás vem dos punhos (relativa à pegada) */
+    if(G.mode==='xr'&&H.L&&H.R&&H.L.fwd&&H.R.fwd){_f.copy(H.L.fwd).add(H.R.fwd);_f.addScaledVector(_x,-_f.dot(_x));if(_f.lengthSq()>.05){_f.normalize();const ph=Math.asin(Math.max(-1,Math.min(1,_f.y)));if(T.ph0==null)T.ph0=ph;T.pitch+=((ph-T.ph0)*.9-T.pitch)*.35}}
+    if(T.pitch){_qp.setFromAxisAngle(_x,T.pitch);_z.applyQuaternion(_qp)}
+    _y.crossVectors(_z,_x);_mm.makeBasis(_x,_y,_z);tr.quaternion.setFromRotationMatrix(_mm);tr.position.copy(L).add(R).multiplyScalar(.5).addScaledVector(_y,-.02);
+    const tilt=Math.acos(Math.max(-1,Math.min(1,_y.y)))*180/Math.PI;T.tiltSum+=tilt;T.tiltN++;T.tiltMax=Math.max(T.tiltMax,tilt);T.hdSum+=Math.abs(L.y-R.y);
     hs.forEach(h=>h.material.emissiveIntensity=tilt>c.tilt?0:.6);
-    const its=tr.userData.items;if(tilt>c.tilt){T.over+=dt;if(T.over>.4&&its.length){const it=its.splice(_x.y>0?0:its.length-1,1)[0],p=new V3();it.getWorldPosition(p);tr.remove(it);it.position.copy(p);it.scale.setScalar(.028);items.add(it);spill.push({m:it,v:new V3(0,0,0).addScaledVector(_x,_x.y>0?-.3:.3),t:now});T.spilled++;T.over=0;boop()}}else T.over=0;return}
+    ballStep(T,tr,dt,now,tilt);return}
   if(T.state==='settle'){const k=Math.min(1,(now-T.st)/220);tr.position.lerpVectors(T.from,T.to,k);if(k>=1)finishTrial(now,'Entregue');return}
   if(T.state==='fall'){T.vel.y-=9.8*dt;const pl=W2L(tr.position);tr.position.addScaledVector(T.vel,dt);const l=W2L(tr.position);
     const surf=onShelf&&Math.abs(l.x-D.x)<.25&&Math.abs(l.z-D.z)<.15?destY:(Math.abs(l.x)<.475&&l.z<-.15&&l.z>-.75?topY:null);
