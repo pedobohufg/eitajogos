@@ -456,7 +456,7 @@ function ghostHands(T,renderer,stateOf,handOf,root){
  const orig=renderer.render.bind(renderer);renderer.render=function(sc,cam){if(sc===root||sc===root.parent)upd();return orig(sc,cam)};
  return H}
 
-ghostHands(THREE,renderer,i=>inputs[i]&&inputs[i].pinch?2:0,i=>inputs[i]&&inputs[i].hand,scene);
+ghostHands(THREE,renderer,i=>inputs[i]&&inputs[i].pinch?2:inputs[i]&&inputs[i].near?1:0,i=>inputs[i]&&inputs[i].hand,scene);
 
 const thr=()=>G?G.c.sens:.06;const TIPS=['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip'],_w=new V3(),_m=new V3(),_t=new V3();
 function updHands(now){for(const s of inputs){s.ok=false;s.ap=null;
@@ -464,15 +464,18 @@ function updHands(now){for(const s of inputs){s.ok=false;s.ap=null;
       if(w&&mp&&w.visible!==false&&mp.visible!==false){w.getWorldPosition(_w);mp.getWorldPosition(_m);s.pt.copy(_w).lerp(_m,.55);let sum=0,n=0;for(const k of TIPS){const j=J[k];if(j&&j.visible!==false){j.getWorldPosition(_t);sum+=_t.distanceTo(s.pt);n++}}if(n>=3){s.ap=sum/n;s.ok=true;s.b.copy(s.pt)}}}
    else if(s.grip.visible){s.grip.getWorldPosition(s.pt);s.b.copy(s.pt);s.ok=true}}
   let want=s.pinch;
-  if(!s.ok)want=false;else if(s.ap!=null){if(!s.pinch&&s.ap<thr())want=true;else if(s.pinch&&s.ap>thr()+.015)want=false}
+  if(!s.ok)want=false;else if(s.ap!=null){const T=G&&G.target,ip=T&&T.item&&!T.holder&&(T.state==='table'||T.state==='fall')?T.item.position:null,near=!!ip&&s.pt.distanceTo(ip)<T.r+.07;s.near=near;s.apMax=Math.max((s.apMax||0)*.99,s.ap);
+    /* envolver o objeto já conta: perto dele, basta curvar os dedos até o tamanho do objeto (sem fechar a mão inteira) */
+    if(!s.pinch){const wrap=near?Math.max(thr(),Math.min(.1,2*T.r+.025)):thr();if(s.ap<thr()||(near&&s.ap<wrap&&s.apMax-s.ap>.018))want=true}
+    else{s.apMin=Math.min(s.apMin??s.ap,s.ap);const rel=Math.max(s.apMin+.015,Math.min(Math.max(s.apMin+.025,thr()+.015),(s.apOpen||.12)-.012));if(s.ap>rel)want=false}}
   else{const v=s.src.gamepad?.buttons?.[1]?.value||0;if(!s.pinch&&v>.6)want=true;else if(s.pinch&&v<.35)want=false}
-  if(want!==s.pinch){s.pinch=want;want?pinchStart(s,now):pinchEnd(s,now)}
+  if(want!==s.pinch){s.pinch=want;if(want){s.apMin=s.ap;s.apOpen=s.apMax}want?pinchStart(s,now):pinchEnd(s,now)}
   s.mI.visible=s.ok;s.mI.position.copy(s.b);s.mI.scale.setScalar(1.6);s.mT.visible=false;
   s.mI.material.emissive.setHex(s.pinch?0x5dff8f:0x8fd0ff)}}
 function buzz(s){try{s.src?.gamepad?.hapticActuators?.[0]?.pulse(.5,40)}catch(e){}}
 const allowed=h=>!G||G.c.mao==='any'||h===G.c.mao;
 function pinchStart(s,now){if(!G||G.phase!=='play'||!G.target||!allowed(s.src.handedness))return;const T=G.target;
-  if(!T.holder&&(T.state==='table'||T.state==='fall')&&s.pt.distanceTo(T.item.position)<T.r+.045)grab(T,s,now);else T.empty++}
+  if(!T.holder&&(T.state==='table'||T.state==='fall')&&s.pt.distanceTo(T.item.position)<T.r+.07)grab(T,s,now);else T.empty++}
 function pinchEnd(s,now){if(G&&G.target&&G.target.holder===s)release(G.target,now)}
 
 /* jogo */
@@ -484,14 +487,14 @@ function spawn(now){const s=sideFor(),r=G.c.d/2;G.target={s};layout(G);const ite
   do{lx=Math.max(-.42,Math.min(.42,s*rand(-.02,.36)));lz=-rand(.28,.62);k++}while(k<50&&Math.hypot(lx-C.x,lz-C.z)<Rc+.1);
   item.position.copy(L2W(new V3(lx,topY+r*item.userData.h,lz)));item.scale.setScalar(.001);items.add(item);
   Object.assign(G.target,{item,r,t:now,state:'table',holder:null,vel:new V3(),grabT:0,lastGrab:0,grabs:0,drops:0,empty:0,maxAp:0,pop:now})}
-function grab(T,s,now){T.holder=s;T.state='held';if(!T.grabT)T.grabT=now;T.lastGrab=now;T.grabs++;buzz(s);if(G.c.som&&ac)tone(880,.07,'sine',.08)}
+function grab(T,s,now){T.holder=s;s.anc=s.src&&s.src.hand?s.hand.joints&&s.hand.joints['wrist']:(s.src?s.grip:null);if(s.anc){s.anc.updateWorldMatrix(true,false);s.off=s.anc.worldToLocal(T.item.position.clone());const L=s.off.length(),mx=T.r+.06;if(L>mx)s.off.multiplyScalar(mx/L)}else s.off=null;T.state='held';if(!T.grabT)T.grabT=now;T.lastGrab=now;T.grabs++;buzz(s);if(G.c.som&&ac)tone(880,.07,'sine',.08)}
 function release(T,now){T.holder=null;T.state='fall';T.vel.set(0,0,0);if(!overDest(W2L(T.item.position),T.r))T.drops++}
 function overDest(l,r){return isShelf?Math.abs(l.x-C.x)<SHW&&Math.abs(l.z-C.z)<SHD&&l.y>destY-.02:Math.hypot(l.x-C.x,l.z-C.z)<Rc*.95-r*.3&&l.y>topY+CH*.3}
 function slotFor(k,r){if(isShelf){const n=Math.max(1,Math.floor(SHW*2/(2*r+.01))),i=k%n;return new V3(C.x-SHW+r+.005+i*(2*r+.01),destY+r*.95,C.z+rand(-.03,.03))}const a=k*2.4,rr=Math.max(0,Rc*.85-r)*Math.sqrt(((k%5)+.5)/5),lay=Math.floor(k/5);return new V3(C.x+Math.cos(a)*rr,topY+.005+r*.95+lay*r*1.4,C.z+Math.sin(a)*rr)}
 function stepItem(T,now,dt){const it=T.item,r=T.r;
   if(T.state==='table'||T.state==='fall'){let near=false;if(G.mode==='xr')for(const s of inputs)if(s.ok&&allowed(s.src?.handedness)&&s.pt.distanceTo(it.position)<r+.045)near=true;const pk=Math.min(1,(now-T.pop)/250);it.scale.setScalar(r*pk*(near?1.1:1))}
   if(G.mode==='xr'&&!T.grabT)for(const s of inputs)if(s.ok&&s.ap!=null&&allowed(s.src.handedness))T.maxAp=Math.max(T.maxAp,s.ap);
-  if(T.state==='held'){it.position.copy(T.holder.pt);it.scale.setScalar(r);return}
+  if(T.state==='held'){const h=T.holder;if(h.anc&&h.off)it.position.copy(h.off).applyMatrix4(h.anc.matrixWorld);else it.position.copy(h.pt);it.scale.setScalar(r);return}
   if(T.state==='settle'){const k=Math.min(1,(now-T.st)/220);it.position.lerpVectors(T.from,T.to,k);if(k>=1){if(isShelf){const n=Math.max(1,Math.floor(SHW*2/(2*r+.01)));if(stored.length>=n){const o=stored.shift();items.remove(o);o.traverse(q=>{if(q.material)q.material.dispose()})}}stored.push(it);finishTrial(now,'Guardado')}return}
   if(T.state!=='fall')return;
   T.vel.y-=9.8*dt;const pl=W2L(it.position);it.position.addScaledVector(T.vel,dt);const l=W2L(it.position),hd=Math.hypot(l.x-C.x,l.z-C.z),hy=r*it.userData.h;

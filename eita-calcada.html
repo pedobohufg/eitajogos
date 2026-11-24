@@ -482,8 +482,8 @@ function physics(dt,now){if(G.paused||G.over)return;
   const want=(keys.w||keys.arrowup||touch.up||vrIn.up)?1:(keys.s||keys.arrowdown||touch.down||vrIn.down)?-1:0;
   const stT=G.time*1000;if(want&&(stT-P.stroke>520||stT<P.stroke)){P.stroke=stT;push(want,now)}
   const turn=((keys.a||keys.arrowleft||touch.left)?1:0)-((keys.d||keys.arrowright||touch.right)?1:0)+vrIn.turn;
-  if(turn){P.yaw+=turn*1.25*(G.nova?1.35:1)*dt;P.energy=Math.max(0,P.energy-.35*dt*Math.abs(turn))}
-  const hdOn=handDrive(dt,sc,slope,now);if(!HD.pushing)P.wr*=Math.pow(.05,dt);P.yaw+=P.wr*dt;
+  if(turn){P.yaw+=turn*.85*(G.nova?1.2:1)*dt;P.energy=Math.max(0,P.energy-.35*dt*Math.abs(turn))}
+  const hdOn=handDrive(dt,sc,slope,now);if(!HD.pushing)P.wr*=Math.pow(.003,dt);P.yaw+=P.wr*dt;
   if(hdOn){}else if(braking){P.v*=Math.pow(.02,dt)}else{P.v-=G_EFF*slope*dt;const crr=sc.crr*dt*(G.nova?.65:1);if(Math.abs(P.v)<=crr){P.v=Math.abs(G_EFF*slope)<sc.crr?0:P.v}else P.v-=Math.sign(P.v)*crr;
     P.yaw+=side*2.2*dt*(Math.abs(P.v)>.05?1:.4)}
   /* descanso */
@@ -567,7 +567,7 @@ function wrap(x,t,w){const out=[];let line='';for(const word of t.split(' ')){co
 function drawVrCard(b){if(!renderer.xr.isPresenting)return;const {x,c,t}=cardVR,[k,col]=KIND[b.kind];x.clearRect(0,0,1024,640);x.fillStyle='rgba(22,14,38,.95)';x.beginPath();x.roundRect(4,4,1016,632,40);x.fill();x.fillStyle=col;x.beginPath();x.roundRect(40,36,220,52,26);x.fill();x.fillStyle='#fff';x.font='bold 30px "Instrument Sans",sans-serif';x.fillText(k,62,72);
   x.font='bold 46px "Instrument Sans",sans-serif';let y=150;for(const l of wrap(x,b.title,940)){x.fillText(l,40,y);y+=54}x.font='34px "Instrument Sans",sans-serif';x.fillStyle='#e9e2ff';for(const l of wrap(x,b.aconteceu||'',940)){x.fillText(l,40,y);y+=44}
   if(b.solucao){y+=10;x.fillStyle='#9ee6b8';for(const l of wrap(x,'Solução: '+b.solucao,940)){x.fillText(l,40,y);y+=42}}
-  x.fillStyle='#b893ff';x.font='bold 32px "Instrument Sans",sans-serif';x.fillText(b.help?'A ou gatilho: tentar outro caminho   ·   B: pedir ajuda':'A ou gatilho: continuar',40,600);t.needsUpdate=true;cardP.visible=true}
+  x.fillStyle='#b893ff';x.font='bold 32px "Instrument Sans",sans-serif';x.fillText(b.help?'Toque OUTRO CAMINHO ou PEDIR AJUDA (controle: A ou B)':'Toque CONTINUAR (controle: A ou gatilho)',40,600);t.needsUpdate=true;cardP.visible=true}
 function drawVrHud(){const {x,t}=hudVR;x.clearRect(0,0,1024,300);x.fillStyle='rgba(22,14,38,.88)';x.beginPath();x.roundRect(4,4,1016,292,36);x.fill();const M=W.M[G.mi];x.fillStyle='#fff';x.font='bold 40px "Instrument Sans",sans-serif';x.fillText(M?`Missão ${G.mi+1}/${W.M.length}: ${M.t}`:'Percurso concluído',30,62);
   x.fillStyle='#3a2f55';x.fillRect(30,100,640,34);x.fillStyle=P.energy<25?'#e0412c':P.energy<50?'#e0a21b':'#2e9e5b';x.fillRect(30,100,640*P.energy/100,34);x.fillStyle='#fff';x.font='30px "Instrument Sans",sans-serif';x.fillText('Energia '+fmt(P.energy)+'%',690,128);
   x.fillStyle='#d7ccff';x.fillText(`Tempo ${mmss(G.time)} · ajuda ${G.help}×`,30,186);if(performance.now()<G.tipUntil){x.fillStyle='#ffd27a';x.fillText(G.tip.slice(0,62),30,250)}t.needsUpdate=true}
@@ -602,22 +602,46 @@ function ghostHands(T,renderer,stateOf,handOf,root){
  return H}
 
 /* ===== VR: mãos translúcidas e impulso da cadeira pelos aros ===== */
-const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],mode:[0,0],dir:[0,0],acc:[0,0],opp:[0,0],still:[0,0],stroke:[0,0],cl:[false,false],lost:[0,0],sp:[new THREE.Vector3(),new THREE.Vector3()],fresh:[true,true],pushing:false,shake:0,hap:0,tired:false};
+const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],mode:[0,0],dir:[0,0],acc:[0,0],opp:[0,0],still:[0,0],stroke:[0,0],cl:[false,false],lost:[0,0],sp:[new THREE.Vector3(),new THREE.Vector3()],fresh:[true,true],pf:[0,0],pushing:false,shake:0,hap:0,tired:false};
 for(let i=0;i<2;i++){const c=renderer.xr.getController(i),g=renderer.xr.getControllerGrip(i),h=renderer.xr.getHand(i);rig.add(c,g,h);HD.grip[i]=g;HD.hand[i]=h;
   c.addEventListener('connected',e=>{HD.src[i]=e.data;HD.fresh[i]=true;HD.mode[i]=0});c.addEventListener('disconnected',()=>{HD.src[i]=null;HD.mode[i]=0;HD.st[i]=0})}
 ghostHands(THREE,renderer,i=>HD.st[i],i=>HD.hand[i],scene);
 const CO=new THREE.Vector3();let coT=0;
 function alignChair(){const cp=camera.position,ty=Math.max(-.6,Math.min(.6,cp.y-1.15));
-  if(coT<45){CO.set(cp.x,ty,cp.z);coT++}else if(HD.mode[0]!==1&&HD.mode[1]!==1){CO.x+=(cp.x-CO.x)*.004;CO.z+=(cp.z-CO.z)*.004;CO.y+=(ty-CO.y)*.01}
+  if(coT<45){CO.set(cp.x,ty,cp.z);coT++}
   chair.position.copy(CO);chairNew.position.copy(CO)}
 const rimHL=[-1,1].map(s=>{const m=new THREE.Mesh(new THREE.TorusGeometry(.265,.014,8,56),new THREE.MeshBasicMaterial({color:0x2fd6b5,transparent:true,opacity:.2,depthWrite:false,toneMapped:false}));m.rotation.y=Math.PI/2;m.visible=false;m.renderOrder=4;rig.add(m);return m});
 function rimC(k,out){const nova=chairNew.visible,s=k?1:-1;return out.set(s*.345,.31,nova?0:.03).add(CO)}
 function updRimHL(){const xr=renderer.xr.isPresenting;for(let k=0;k<2;k++){const m=rimHL[k];m.visible=xr;if(!xr)continue;rimC(k,m.position);let st=0;for(let i=0;i<2;i++)if(HD.src[i]&&HD.side[i]===k)st=Math.max(st,HD.st[i]);
   m.material.color.setHex(st===2?0xff8a3d:0x2fd6b5);m.material.opacity=[.22,.5,.85][st];m.scale.setScalar(chairNew.visible?1.04:1)}}
 const _p=new THREE.Vector3(),_c=new THREE.Vector3(),TIPS4=['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip'];
+/* botões de toque no VR: quem joga só com as mãos toca neles com a ponta do dedo */
+function mkBtn(label,w,h,col){const c=document.createElement('canvas');c.width=512;c.height=Math.round(512*h/w);const x=c.getContext('2d'),t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,transparent:true,depthTest:false,toneMapped:false}));m.renderOrder=22;m.visible=false;rig.add(m);
+  const b={m,w,h,label,col,hl:false,down:false,cool:0,cb:null};
+  b.draw=hl=>{x.clearRect(0,0,c.width,c.height);x.fillStyle=hl?'#ffd166':col;x.beginPath();x.roundRect(6,6,c.width-12,c.height-12,c.height*.3);x.fill();x.lineWidth=8;x.strokeStyle='rgba(255,255,255,.95)';x.stroke();
+    x.fillStyle=hl?'#1d1430':'#fff';let fs=Math.round(c.height*.42);x.font='bold '+fs+'px "Instrument Sans",sans-serif';while(x.measureText(b.label).width>c.width-50&&fs>20){fs-=2;x.font='bold '+fs+'px "Instrument Sans",sans-serif'}
+    x.textAlign='center';x.textBaseline='middle';x.fillText(b.label,c.width/2,c.height/2+2);t.needsUpdate=true};
+  b.draw(false);return b}
+const BT={help:mkBtn('AJUDA',.17,.075,'#e85d75'),center:mkBtn('CENTRALIZAR',.17,.075,'#5b6b8a'),go:mkBtn('CONTINUAR',.27,.09,'#ff6b4a'),help2:mkBtn('PEDIR AJUDA',.27,.09,'#e85d75'),other:mkBtn('JOGAR NO OUTRO BAIRRO',.36,.09,'#ff6b4a')};
+BT.help.cb=()=>{if(G&&!G.over&&!G.card)askHelp()};BT.center.cb=()=>{coT=0;toast('Cadeira ajustada ao seu corpo.',1600)};
+BT.go.cb=()=>{if(G&&G.card)closeCard()};BT.help2.cb=()=>{if(G&&G.card)askHelp()};BT.other.cb=()=>{$('bOther').click()};
+const _tl=new THREE.Vector3();
+function updButtons(now){const xr=renderer.xr.isPresenting,card=!!(G&&G.card),over=!!(G&&G.over),hb=card&&!!G.card.help;
+  const place=(b,on,x,y,z,rx)=>{b.m.visible=xr&&on;if(on){b.m.position.set(CO.x+x,CO.y+y,CO.z+z);b.m.rotation.set(rx,0,0)}};
+  place(BT.help,!!G&&!card&&!over,-.3,.86,-.2,-1.0);place(BT.center,!card&&!over,.3,.86,-.2,-1.0);
+  place(BT.go,card,hb?-.15:0,.98,-.42,-.55);place(BT.help2,hb,.15,.98,-.42,-.55);place(BT.other,over,0,.98,-.42,-.55);
+  const gl=hb?'OUTRO CAMINHO':'CONTINUAR';if(BT.go.label!==gl){BT.go.label=gl;BT.go.draw(false)}
+  if(!xr)return;const pts=[];
+  for(let i=0;i<2;i++){const src=HD.src[i];if(!src)continue;if(src.hand){const j=HD.hand[i].joints&&HD.hand[i].joints['index-finger-tip'];if(j&&j.visible!==false)pts.push(j.getWorldPosition(new THREE.Vector3()))}else if(HD.grip[i].visible)pts.push(HD.grip[i].getWorldPosition(new THREE.Vector3()))}
+  for(const b of Object.values(BT)){if(!b.m.visible){b.down=false;if(b.hl){b.hl=false;b.draw(false)}continue}
+    let touch=false;for(const p of pts){_tl.copy(p);b.m.worldToLocal(_tl);if(Math.abs(_tl.x)<b.w/2+.012&&Math.abs(_tl.y)<b.h/2+.012&&_tl.z<.04&&_tl.z>-.05){touch=true;break}}
+    if(touch!==b.hl){b.hl=touch;b.draw(touch)}
+    if(touch&&!b.down&&now>b.cool){b.down=true;b.cool=now+800;if(audio)beep(660,.06,'sine',.08);b.cb&&b.cb()}else if(!touch)b.down=false}}
+
 function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresenting)return false;
-  const nova=chairNew.visible,R=nova?.27:.26,T=.62,eff=1.15*(G.nova?1.15:1)/(1+(sc.c-1)*.3)*(P.energy<1?.2:1);
-  let wL=P.v-P.wr*T/2,wR=P.v+P.wr*T/2,braking=false;
+  const nova=chairNew.visible,R=nova?.27:.26,T=.9,eff=.85*(G.nova?1.15:1)/(1+(sc.c-1)*.3)*(P.energy<1?.2:1);
+  let wL=P.v-P.wr*T/2,wR=P.v+P.wr*T/2,braking=false;HD.pf[0]=HD.pf[1]=0;
   for(let i=0;i<2;i++){const src=HD.src[i];HD.st[i]=0;if(!src){HD.mode[i]=0;continue}
     const side=src.handedness==='left'?0:src.handedness==='right'?1:i;HD.side[i]=side;
     let ok=false,closed=false,isHand=false;
@@ -640,17 +664,19 @@ function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresentin
     else if(!closed||(isHand&&far)){if(m===1&&HD.stroke[i]>.08)G.pushes++;m=0}
     else if(m===2){if(ds>0){HD.acc[i]+=ds;if(HD.acc[i]>.02&&dx<.3){m=1;HD.dir[i]=1;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0}}else HD.acc[i]=0}
     else if(m===1){HD.still[i]=Math.abs(ds)<.0016?HD.still[i]+dt:0;
-      if(HD.dir[i]===0){HD.acc[i]+=ds;if(Math.abs(HD.acc[i])>.025)HD.dir[i]=Math.sign(HD.acc[i])}
+      if(HD.dir[i]===0){HD.acc[i]+=ds;if(Math.abs(HD.acc[i])>.035)HD.dir[i]=Math.sign(HD.acc[i])}
       else if(ds*HD.dir[i]<0){HD.opp[i]+=Math.abs(ds);if(HD.opp[i]>.03){if(HD.stroke[i]>.08)G.pushes++;m=2;HD.acc[i]=0}}
-      else{HD.opp[i]=Math.max(0,HD.opp[i]-Math.abs(ds));HD.stroke[i]+=Math.abs(ds);
+      else if(HD.u[i]*HD.dir[i]>.12){HD.opp[i]=Math.max(0,HD.opp[i]-Math.abs(ds));HD.stroke[i]+=Math.abs(ds);HD.pf[i]=HD.dir[i];
         const w0=side?wR:wL,tgt=Math.max(-1,Math.min(G.nova?2.1:1.8,HD.u[i]*eff));let nw=w0;
-        if(HD.dir[i]>0&&tgt>w0)nw=w0+(tgt-w0)*Math.min(1,dt*16);else if(HD.dir[i]<0&&tgt<w0)nw=w0+(tgt-w0)*Math.min(1,dt*16);
+        if(HD.dir[i]>0&&tgt>w0)nw=w0+(tgt-w0)*Math.min(1,dt*6);else if(HD.dir[i]<0&&tgt<w0)nw=w0+(tgt-w0)*Math.min(1,dt*6);
         const dw=Math.abs(nw)-Math.abs(w0);if(dw>0){const cost=dw*1.05*sc.c*(1+Math.max(0,Math.sign(nw)*slope)*22)*(G.nova?.7:1);P.energy=Math.max(0,P.energy-cost);G.spent+=cost;P.lastPush=now}
         if(side)wR=nw;else wL=nw;HD.pushing=true}
       if(HD.still[i]>.3){if(side)wR*=Math.pow(.03,dt);else wL*=Math.pow(.03,dt);braking=true}}
     HD.mode[i]=m;if(m===1)HD.st[i]=2}
   if(P.energy<1&&HD.pushing&&!HD.tired){HD.tired=true;toast('Sem forças. Solte os aros e descanse um pouco.',2200)}else if(P.energy>10)HD.tired=false;
-  P.v=(wL+wR)/2;P.wr=Math.max(-2.2,Math.min(2.2,(wR-wL)/T));return braking}
+  /* as duas mãos empurrando juntas: se o ritmo é parecido, vai reto */
+  if(HD.pf[0]&&HD.pf[0]===HD.pf[1]&&Math.abs(wR-wL)<.4*Math.max(Math.abs(wR),Math.abs(wL))){const m=(wL+wR)/2;wL=wR=m}
+  P.v=(wL+wR)/2;P.wr=Math.max(-.9,Math.min(.9,(wR-wL)/T));return braking}
 
 function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
     if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;
@@ -659,7 +685,7 @@ function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=rendere
   if(G&&G.card){vrIn.up=false}}
 let xrOK=false;
 if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{xrOK=ok;$('bVR').hidden=!ok}).catch(()=>{});
-$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros das rodas (feche a mão ou aperte o botão lateral) e empurre para a frente. Solte e repita.',8000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.mode[0]=HD.mode[1]=0;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
+$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros e empurre para a frente. Volte a mão e empurre de novo. Botões AJUDA e CENTRALIZAR ficam nos braços da cadeira.',9000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.mode[0]=HD.mode[1]=0;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
 
 /* ===== vida no bairro: pessoas, carros, ônibus, vento, pássaros, onomatopeias e detalhes ===== */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -1069,7 +1095,7 @@ function building(x0,x1,zf,dir,H,col,style,label,shop=true,opts={}){const A=ARCH
 const ro=new ResizeObserver(()=>{if(renderer.xr.isPresenting)return;const w=fig.clientWidth,h=fig.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();mm.width=mm.clientWidth*devicePixelRatio;mm.height=mm.clientHeight*devicePixelRatio});ro.observe(fig);
 let last=performance.now(),hudT=0;
 renderer.setAnimationLoop(()=>{const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
-  if(renderer.xr.isPresenting){readVR();alignChair()}updRimHL();
+  if(renderer.xr.isPresenting){readVR();alignChair()}updRimHL();updButtons(now);
   if(W)updLife(dt,now);
   if(G&&!G.paused&&!G.over){G.time+=dt;physics(dt,now);if(G.pending&&!G.card){showCard(G.pending);G.pending=null}}
   rig.position.set(P.x,P.h,P.z);rig.rotation.y=P.yaw;
