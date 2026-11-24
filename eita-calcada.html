@@ -178,7 +178,7 @@ function buildWorld(mode){const hoje=mode==='hoje',Z=[],S=[],B=[];
   sol(20,22.8,6.05,6.5,.5,0x5b6b7a,'banco');
   /* obstáculos de calçada */
   if(hoje){sol(-38,-35,-6.5,-4.0,1.3,0,'cacamba');sol(-23,-20.5,-6.5,-4.9,2.4,0,'banca');cir(-21.8,-4.05,.15,7,0,'poste')}
-  else{sol(-38,-35,-3.3,-1.3,1.3,0,'cacamba');sol(-23,-20.5,-6.5,-5.6,2.4,0,'banca');cir(-21.8,-3.75,.15,7,0,'poste')}
+  else{sol(-38,-35,-3.35,-1.75,1.3,0,'cacamba');sol(-23,-20.5,-6.5,-5.6,2.4,0,'banca');cir(-21.8,-3.75,.15,7,0,'poste')}
   if(hoje){sol(17,20,-6.5,-4.9,.9,0,'caixotes');sol(21.2,21.8,-4.3,-3.7,1.0,0,'cavalete')}else sol(17,20,-6.5,-6.0,.9,0,'caixotes');
   /* árvores na faixa de serviço */
   for(const x of [-45,-27,-17,11,25,36,43])cir(x,-3.85,.25,0,0,'arvore');
@@ -187,9 +187,9 @@ function buildWorld(mode){const hoje=mode==='hoje',Z=[],S=[],B=[];
   for(const zz of [-34,-24,-11,17,32])cir(3.85,zz,.25,0,0,'arvore');
   /* carros estacionados */
   const car=(x,zz,ax)=>ax==='x'?sol(x-2.1,x+2.1,zz-.8,zz+.8,1.4,0,'carro'):sol(x-.8,x+.8,zz-2.1,zz+2.1,1.4,0,'carro');
-  for(const x of [-41,-30,-19,17,38])car(x,-2.6,'x');for(const x of [-40,-22,14,37])car(x,2.6,'x');
-  for(const zz of [-30,-20,24,34])car(-2.6,zz,'z');for(const zz of [-32,-22,31])car(2.6,zz,'z');
-  if(hoje)sol(1.8,3.4,2.9,7.1,1.4,0,'carro');
+  for(const x of [-42,-30,-19,17,38])car(x,-2.5,'x');
+  for(const zz of [-32,-22,31])car(2.5,zz,'z');
+  if(hoje)sol(1.7,3.3,3.25,7.45,1.4,0,'carro');
   /* barreiras */
   const bar=(id,x0,x1,z0,z1,kind,title,aconteceu,norma,solucao,help)=>B.push({id,x0,x1,z0,z1,kind,title,aconteceu,norma,solucao,help});
   if(hoje){
@@ -398,9 +398,9 @@ function build(mode){disposeAll(world);crowns.length=0;SEM.heads.length=0;SEM.pe
   const white=std(0xf4f4f0),yel=std(0xf2c21b);
   for(let k=0;k<7;k++){const x=-3.2+k;box(x,x+.5,.005,.012,-6.1,-3.9,white);box(x,x+.5,.005,.012,3.9,6.1,white)}
   for(let k=0;k<7;k++){const zz=-3.2+k;box(28.1,30.9,.005,.012,zz,zz+.5,white);box(-11.9,-9.1,.005,.012,zz,zz+.5,white)}
-  for(let x=-62;x<62;x+=4)if(Math.abs(x+1)>8&&(x+2<-12.5||x>-8.5)&&(x+2<27.5||x>31.5))box(x,x+2,.005,.012,-.06,.06,yel);
-  for(let zz=-54;zz<54;zz+=4)if(Math.abs(zz+1)>9)box(-.06,.06,.005,.012,zz,zz+2,yel);
-  box(-4.3,-4.0,.005,.012,.1,1.7,white);box(4.0,4.3,.005,.012,-1.7,-.1,white);box(-1.7,-.1,.005,.012,-6.9,-6.6,white);box(.1,1.7,.005,.012,6.6,6.9,white);
+  for(let x=-62;x<62;x+=4)if(Math.abs(x+1)>8&&(x+2<-12.5||x>-8.5)&&(x+2<27.5||x>31.5))box(x,x+2,.005,.012,.44,.56,yel);
+  for(let zz=-54;zz<54;zz+=4)if(Math.abs(zz+1)>9)box(-.61,-.49,.005,.012,zz,zz+2,yel);
+  box(-4.3,-4.0,.005,.012,.6,3.4,white);box(4.0,4.3,.005,.012,-1.6,.4,white);box(-3.4,-.6,.005,.012,-6.9,-6.6,white);box(-.45,1.6,.005,.012,6.6,6.9,white);
   {const t=tex(256,96,x=>{x.fillStyle='#f2c21b';x.font='700 72px "Instrument Sans",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('ÔNIBUS',128,50)});const m=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1),toonM({map:t,transparent:true}));m.rotation.x=-Math.PI/2;m.rotation.z=-Math.PI/2;m.position.set(25,.015,2.4);world.add(m);for(const zz of [1.6,3.3])box(17.5,26,.005,.012,zz-.06,zz+.06,yel)}
   for(const s of W.S){if(s.kind==='arvore'){tree(s.cx,s.cz);continue}if(s.kind==='carro'){car(s);continue}
     if(s.kind==='poste'){const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.13,7,10),std(0x6b7480));p.position.set(s.cx,3.6,s.cz);world.add(p);box(s.cx-.05,s.cx+.05,6.9,7,s.cz-.05,s.cz+1.2,std(0x6b7480));const sg=new THREE.Mesh(new THREE.CircleGeometry(.34,8),toonM({map:signTex('PARE','#c0392b','#fff',128,128),side:THREE.DoubleSide}));sg.position.set(s.cx,2.4,s.cz+.11);sg.rotation.z=Math.PI/8;world.add(sg);continue}
@@ -483,7 +483,7 @@ function physics(dt,now){if(G.paused||G.over)return;
   const stT=G.time*1000;if(want&&(stT-P.stroke>520||stT<P.stroke)){P.stroke=stT;push(want,now)}
   const turn=((keys.a||keys.arrowleft||touch.left)?1:0)-((keys.d||keys.arrowright||touch.right)?1:0)+vrIn.turn;
   if(turn){P.yaw+=turn*1.25*(G.nova?1.35:1)*dt;P.energy=Math.max(0,P.energy-.35*dt*Math.abs(turn))}
-  const hdOn=handDrive(dt,sc,slope,now);if(hdOn)P.yaw+=P.wr*dt;else{P.wr*=Math.pow(.02,dt);P.yaw+=P.wr*dt}
+  const hdOn=handDrive(dt,sc,slope,now);if(!HD.pushing)P.wr*=Math.pow(.05,dt);P.yaw+=P.wr*dt;
   if(hdOn){}else if(braking){P.v*=Math.pow(.02,dt)}else{P.v-=G_EFF*slope*dt;const crr=sc.crr*dt*(G.nova?.65:1);if(Math.abs(P.v)<=crr){P.v=Math.abs(G_EFF*slope)<sc.crr?0:P.v}else P.v-=Math.sign(P.v)*crr;
     P.yaw+=side*2.2*dt*(Math.abs(P.v)>.05?1:.4)}
   /* descanso */
@@ -602,44 +602,55 @@ function ghostHands(T,renderer,stateOf,handOf,root){
  return H}
 
 /* ===== VR: mãos translúcidas e impulso da cadeira pelos aros ===== */
-const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],on:[false,false],stroke:[0,0],shake:0,hap:0,tired:false};
+const HD={src:[null,null],hand:[],grip:[],st:[0,0],side:[0,1],phi:[0,0],u:[0,0],mode:[0,0],dir:[0,0],acc:[0,0],opp:[0,0],still:[0,0],stroke:[0,0],cl:[false,false],lost:[0,0],sp:[new THREE.Vector3(),new THREE.Vector3()],fresh:[true,true],pushing:false,shake:0,hap:0,tired:false};
 for(let i=0;i<2;i++){const c=renderer.xr.getController(i),g=renderer.xr.getControllerGrip(i),h=renderer.xr.getHand(i);rig.add(c,g,h);HD.grip[i]=g;HD.hand[i]=h;
-  c.addEventListener('connected',e=>{HD.src[i]=e.data});c.addEventListener('disconnected',()=>{HD.src[i]=null;HD.on[i]=false;HD.st[i]=0})}
+  c.addEventListener('connected',e=>{HD.src[i]=e.data;HD.fresh[i]=true;HD.mode[i]=0});c.addEventListener('disconnected',()=>{HD.src[i]=null;HD.mode[i]=0;HD.st[i]=0})}
 ghostHands(THREE,renderer,i=>HD.st[i],i=>HD.hand[i],scene);
 const CO=new THREE.Vector3();let coT=0;
 function alignChair(){const cp=camera.position,ty=Math.max(-.6,Math.min(.6,cp.y-1.15));
-  if(coT<45){CO.set(cp.x,ty,cp.z);coT++}else if(!HD.on[0]&&!HD.on[1]){CO.x+=(cp.x-CO.x)*.004;CO.z+=(cp.z-CO.z)*.004;CO.y+=(ty-CO.y)*.01}
+  if(coT<45){CO.set(cp.x,ty,cp.z);coT++}else if(HD.mode[0]!==1&&HD.mode[1]!==1){CO.x+=(cp.x-CO.x)*.004;CO.z+=(cp.z-CO.z)*.004;CO.y+=(ty-CO.y)*.01}
   chair.position.copy(CO);chairNew.position.copy(CO)}
 const rimHL=[-1,1].map(s=>{const m=new THREE.Mesh(new THREE.TorusGeometry(.265,.014,8,56),new THREE.MeshBasicMaterial({color:0x2fd6b5,transparent:true,opacity:.2,depthWrite:false,toneMapped:false}));m.rotation.y=Math.PI/2;m.visible=false;m.renderOrder=4;rig.add(m);return m});
 function rimC(k,out){const nova=chairNew.visible,s=k?1:-1;return out.set(s*.345,.31,nova?0:.03).add(CO)}
 function updRimHL(){const xr=renderer.xr.isPresenting;for(let k=0;k<2;k++){const m=rimHL[k];m.visible=xr;if(!xr)continue;rimC(k,m.position);let st=0;for(let i=0;i<2;i++)if(HD.src[i]&&HD.side[i]===k)st=Math.max(st,HD.st[i]);
   m.material.color.setHex(st===2?0xff8a3d:0x2fd6b5);m.material.opacity=[.22,.5,.85][st];m.scale.setScalar(chairNew.visible?1.04:1)}}
 const _p=new THREE.Vector3(),_c=new THREE.Vector3(),TIPS4=['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip'];
-function handDrive(dt,sc,slope,now){if(!renderer.xr.isPresenting)return false;let any=false;const nova=chairNew.visible,R=nova?.27:.26;
-  for(let i=0;i<2;i++){const src=HD.src[i];HD.st[i]=0;if(!src){HD.on[i]=false;continue}
+function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresenting)return false;
+  const nova=chairNew.visible,R=nova?.27:.26,T=.62,eff=1.15*(G.nova?1.15:1)/(1+(sc.c-1)*.3)*(P.energy<1?.2:1);
+  let wL=P.v-P.wr*T/2,wR=P.v+P.wr*T/2,braking=false;
+  for(let i=0;i<2;i++){const src=HD.src[i];HD.st[i]=0;if(!src){HD.mode[i]=0;continue}
     const side=src.handedness==='left'?0:src.handedness==='right'?1:i;HD.side[i]=side;
-    let ok=false,grab=false,isHand=false;
+    let ok=false,closed=false,isHand=false;
     if(src.hand){const J=HD.hand[i].joints,w=J&&J['wrist'],mp=J&&J['middle-finger-phalanx-proximal'];
       if(w&&mp&&w.visible!==false){isHand=true;ok=true;_p.copy(w.position).lerp(mp.position,.5);let sum=0,n=0;for(const t of TIPS4){const j=J[t];if(j&&j.visible!==false){sum+=j.position.distanceTo(_p);n++}}
-        const curl=n?sum/n:1,tt=J['thumb-tip'],it=J['index-finger-tip'],pin=tt&&it?tt.position.distanceTo(it.position):1;grab=HD.on[i]?(curl<.095||pin<.045):(curl<.075||pin<.03)}}
-    else if(HD.grip[i].visible){ok=true;_p.copy(HD.grip[i].position);const v=src.gamepad?.buttons?.[1]?.value||0;grab=HD.on[i]?v>.3:v>.55}
-    if(!ok){HD.on[i]=false;continue}
-    rimC(side,_c);const dy=_p.y-_c.y,dz=_p.z-_c.z,rho=Math.hypot(dy,dz);
-    const near=Math.abs(_p.x-_c.x)<.18&&Math.abs(rho-R)<.15;
-    if(isHand&&!HD.on[i]&&!near)grab=false;
+        const curl=n?sum/n:1,tt=J['thumb-tip'],it=J['index-finger-tip'],pin=tt&&it?tt.position.distanceTo(it.position):1,was=HD.cl[i];
+        closed=was?(curl<.1||pin<.05):(curl<.085||pin<.035)}}
+    else if(HD.grip[i].visible){ok=true;_p.copy(HD.grip[i].position);const v=src.gamepad?.buttons?.[1]?.value||0;closed=HD.cl[i]?v>.3:v>.55}
+    if(!ok){HD.lost[i]+=dt;if(HD.lost[i]>.25)HD.mode[i]=0;continue}
+    HD.lost[i]=0;HD.cl[i]=closed;
+    const sp=HD.sp[i];if(HD.fresh[i]){sp.copy(_p);HD.fresh[i]=false}else sp.lerp(_p,.55);
+    rimC(side,_c);const dy=sp.y-_c.y,dz=sp.z-_c.z,rho=Math.hypot(dy,dz),dx=Math.abs(sp.x-_c.x);
+    const near=dx<.22&&Math.abs(rho-R)<.18,far=dx>.32||Math.abs(rho-R)>.3,phi=Math.atan2(-dz,dy);
+    let dp=phi-HD.phi[i];if(dp>Math.PI)dp-=2*Math.PI;if(dp<-Math.PI)dp+=2*Math.PI;HD.phi[i]=phi;
+    const ds=Math.max(-.12,Math.min(.12,Math.max(.1,rho)*dp));HD.u[i]+=(ds/Math.max(dt,1e-3)-HD.u[i])*.6;
     if(near)HD.st[i]=1;
-    const phi=Math.atan2(-dz,dy);
-    if(grab&&!HD.on[i]){HD.on[i]=true;HD.phi[i]=phi;HD.u[i]=0;HD.stroke[i]=0;try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.35,25)}catch(e){}}
-    else if(!grab&&HD.on[i]){HD.on[i]=false;if(HD.stroke[i]>.08)G.pushes++}
-    if(HD.on[i]){HD.st[i]=2;any=true;let dp=phi-HD.phi[i];if(dp>Math.PI)dp-=2*Math.PI;if(dp<-Math.PI)dp+=2*Math.PI;HD.phi[i]=phi;
-      const ds=Math.max(-.12,Math.min(.12,Math.max(.1,rho)*dp));HD.u[i]+=(ds/Math.max(dt,1e-3)-HD.u[i])*.5;HD.stroke[i]+=Math.max(0,ds)}}
-  if(!any)return false;
-  const T=.62,eff=(G.nova?1.15:1)/(1+(sc.c-1)*.3)*(P.energy<1?.2:1);let wL=P.v-P.wr*T/2,wR=P.v+P.wr*T/2;
-  for(let i=0;i<2;i++){if(!HD.on[i])continue;const side=HD.side[i],w0=side?wR:wL,tgt=Math.max(-1,Math.min(G.nova?2.1:1.8,HD.u[i]*eff)),nw=w0+(tgt-w0)*Math.min(1,dt*14),dw=Math.abs(nw)-Math.abs(w0);
-    if(dw>0){const dir=Math.sign(nw)||1,cost=dw*1.05*sc.c*(1+Math.max(0,dir*slope)*22)*(G.nova?.7:1);P.energy=Math.max(0,P.energy-cost);G.spent+=cost;P.lastPush=now}
-    if(side)wR=nw;else wL=nw}
-  if(P.energy<1&&!HD.tired){HD.tired=true;toast('Sem forças. Solte os aros e descanse um pouco.',2200)}else if(P.energy>10)HD.tired=false;
-  P.v=(wL+wR)/2;P.wr=Math.max(-2.2,Math.min(2.2,(wR-wL)/T));return true}
+    let m=HD.mode[i];
+    /* 0 solta · 1 segurando (o 1º movimento decide frente/ré) · 2 voltando a mão (não move a cadeira) */
+    if(m===0){if(closed&&(near||!isHand)){m=1;HD.dir[i]=0;HD.acc[i]=0;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0;try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.35,25)}catch(e){}}}
+    else if(!closed||(isHand&&far)){if(m===1&&HD.stroke[i]>.08)G.pushes++;m=0}
+    else if(m===2){if(ds>0){HD.acc[i]+=ds;if(HD.acc[i]>.02&&dx<.3){m=1;HD.dir[i]=1;HD.opp[i]=0;HD.still[i]=0;HD.stroke[i]=0}}else HD.acc[i]=0}
+    else if(m===1){HD.still[i]=Math.abs(ds)<.0016?HD.still[i]+dt:0;
+      if(HD.dir[i]===0){HD.acc[i]+=ds;if(Math.abs(HD.acc[i])>.025)HD.dir[i]=Math.sign(HD.acc[i])}
+      else if(ds*HD.dir[i]<0){HD.opp[i]+=Math.abs(ds);if(HD.opp[i]>.03){if(HD.stroke[i]>.08)G.pushes++;m=2;HD.acc[i]=0}}
+      else{HD.opp[i]=Math.max(0,HD.opp[i]-Math.abs(ds));HD.stroke[i]+=Math.abs(ds);
+        const w0=side?wR:wL,tgt=Math.max(-1,Math.min(G.nova?2.1:1.8,HD.u[i]*eff));let nw=w0;
+        if(HD.dir[i]>0&&tgt>w0)nw=w0+(tgt-w0)*Math.min(1,dt*16);else if(HD.dir[i]<0&&tgt<w0)nw=w0+(tgt-w0)*Math.min(1,dt*16);
+        const dw=Math.abs(nw)-Math.abs(w0);if(dw>0){const cost=dw*1.05*sc.c*(1+Math.max(0,Math.sign(nw)*slope)*22)*(G.nova?.7:1);P.energy=Math.max(0,P.energy-cost);G.spent+=cost;P.lastPush=now}
+        if(side)wR=nw;else wL=nw;HD.pushing=true}
+      if(HD.still[i]>.3){if(side)wR*=Math.pow(.03,dt);else wL*=Math.pow(.03,dt);braking=true}}
+    HD.mode[i]=m;if(m===1)HD.st[i]=2}
+  if(P.energy<1&&HD.pushing&&!HD.tired){HD.tired=true;toast('Sem forças. Solte os aros e descanse um pouco.',2200)}else if(P.energy>10)HD.tired=false;
+  P.v=(wL+wR)/2;P.wr=Math.max(-2.2,Math.min(2.2,(wR-wL)/T));return braking}
 
 function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
     if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;
@@ -648,7 +659,7 @@ function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=rendere
   if(G&&G.card){vrIn.up=false}}
 let xrOK=false;
 if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{xrOK=ok;$('bVR').hidden=!ok}).catch(()=>{});
-$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros das rodas (feche a mão ou aperte o botão lateral) e empurre para a frente. Solte e repita.',8000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.on[0]=HD.on[1]=false;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
+$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros das rodas (feche a mão ou aperte o botão lateral) e empurre para a frente. Solte e repita.',8000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.mode[0]=HD.mode[1]=0;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
 
 /* ===== vida no bairro: pessoas, carros, ônibus, vento, pássaros, onomatopeias e detalhes ===== */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -703,23 +714,24 @@ function updPeople(dt,now){for(const p of people){const g=p.g;p.t+=dt;const vis=
     p.s=ns;p.ph+=dt*p.sp*5.5;if(p.type==='cadeirante')animWheel(g,p.ph);else animWalk(g,p.ph,Math.min(1.15,p.sp+.1));pSet(p);placeDog(p,true)}}
 /* carros em movimento, com semáforo */
 const traffic=[];let bus=null;
-const LANES=[{ax:'x',l:.78,dir:1},{ax:'x',l:-.78,dir:-1},{ax:'z',l:-.78,dir:1},{ax:'z',l:.78,dir:-1}];
+const LANES=[{ax:'x',l:1.8,dir:1},{ax:'x',l:-.5,dir:-1},{ax:'z',l:-1.6,dir:1},{ax:'z',l:.5,dir:-1}];
 function cPos(c){const x=c.ax==='x'?c.s:c.l,z=c.ax==='x'?c.l:c.s;c.g.position.set(x,0,z);c.g.rotation.y=c.ax==='x'?(c.dir>0?0:Math.PI):(c.dir>0?-Math.PI/2:Math.PI/2);c.x=x;c.z=z}
 function spawnTraffic(){for(const c of traffic)lifeG.remove(c.g);traffic.length=0;if(bus){if(bus.ramp)lifeG.remove(bus.ramp);bus=null}
-  for(const L of LANES)for(let k=0;k<2;k++){const g=vehicle(pick(['hatch','sedan','suv','pickup','van','hatch']),pick(VCOL));mergeTree(g);lifeG.add(g);const c={g,ax:L.ax,l:L.l,dir:L.dir,s:(k?1:-1)*rand(14,40),v:6,honk:0,L:g.userData.L};cPos(c);traffic.push(c)}}
+  for(const L of LANES)for(let k=0;k<2;k++){const g=vehicle(pick(['hatch','sedan','suv','hatch','sedan']),pick(VCOL));mergeTree(g);lifeG.add(g);const c={g,ax:L.ax,l:L.l,dir:L.dir,s:(k?1:-1)*rand(14,40),v:6,honk:0,L:g.userData.L};cPos(c);traffic.push(c)}}
 function blockAhead(c){let lim=99;const front=c.s+c.dir*c.L/2,ph=semPhase(SEM.t),light=c.ax==='x'?ph.A:ph.B,stopD=c.ax==='x'?4.1:6.7;
   for(const o of traffic){if(o===c||o.ax!==c.ax||Math.abs(o.l-c.l)>1.2)continue;const gap=(o.s-c.s)*c.dir-(o.L+c.L)/2;if(gap>-1&&gap<lim)lim=gap}
   const toLine=-stopD-front*c.dir;
   if(toLine>-.3){let stop=light==='r'||(light==='y'&&toLine>4);if(!stop)for(const o of traffic){if(o.ax===c.ax)continue;const of=Math.abs(o.s);if(of<3.5+o.L/2+.5){stop=true;break}}if(stop)lim=Math.min(lim,toLine)}
+  {const entry=-3.6-front*c.dir;if(entry>-.2&&entry<9){for(const o of traffic){if(o.ax===c.ax)continue;if(Math.abs(o.s)<3.6+o.L/2+.4){lim=Math.min(lim,entry);break}}}}
   const q=zoneAt(W,P.x,P.z),onRoad=q&&q.s==='asfalto'&&P.h<.05,pa=c.ax==='x'?P.x:P.z,pl=c.ax==='x'?P.z:P.x;
   if(onRoad&&Math.abs(pl-c.l)<1.9){const gap=(pa-front)*c.dir-.5;if(gap>-1&&gap<14){lim=Math.min(lim,gap);if(gap<10&&q.id!=='faixa'&&performance.now()-c.honk>4500&&G&&!G.paused){c.honk=performance.now();horn();pop('BIIII!',new V3(c.x+(c.ax==='x'?c.dir*c.L/2:0),2.2,c.z+(c.ax==='z'?c.dir*c.L/2:0)),'burst',1100)}}}
   return lim}
-function spawnBus(){const g=vehicle('bus',0x3f8fd0);const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.35),toonM({map:signTex('BAIRRO','#120d1d','#ffe14d',256,64)}));sign.position.set(5.52,1.25,0);sign.rotation.y=Math.PI/2;g.add(sign);lifeG.add(g);bus={g,ax:'x',l:.78,dir:1,s:-60,v:8,state:'vem',t:0,L:11,honk:0,isBus:true};cPos(bus);traffic.push(bus)}
+function spawnBus(){const g=vehicle('bus',0x3f8fd0);const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.35),toonM({map:signTex('BAIRRO','#120d1d','#ffe14d',256,64)}));sign.position.set(5.52,1.25,0);sign.rotation.y=Math.PI/2;g.add(sign);lifeG.add(g);let bs=-60;for(let k=0;k<12&&traffic.some(o=>o.ax==='x'&&Math.abs(o.l-1.8)<1.2&&Math.abs(o.s-bs)<(o.L+11)/2+3);k++)bs-=6;bus={g,ax:'x',l:1.8,dir:1,s:bs,v:8,state:'vem',t:0,L:11,honk:0,isBus:true};cPos(bus);traffic.push(bus)}
 function updTraffic(dt){updSem(dt);for(const c of traffic){let want=c===bus?(bus.state==='vem'?Math.min(8,Math.max(0,(21.3-c.s)*.9)):bus.state==='parado'?0:9):6.5;const lim=blockAhead(c);want=Math.min(want,Math.max(0,(lim-2)*1.3));c.v+=Math.max(-7*dt,Math.min(3*dt,want-c.v));c.s+=c.dir*c.v*dt;
     if(c===bus){if(bus.state==='vem'&&Math.abs(c.s-21.3)<.2&&c.v<.2){bus.state='parado';bus.t=0;pop('PSSHH!',new V3(c.s,3.2,c.l+1),'burst',1200);if(!W.hoje){bus.ramp=new THREE.Mesh(new THREE.BoxGeometry(1,.04,1.1),std(0xb0b6bd));bus.ramp.position.set(c.s+3,.12,3.3);bus.ramp.rotation.x=-.05;lifeG.add(bus.ramp)}}
-      if(bus.state==='parado'){bus.t+=dt;const tz=W.hoje?.78:2.0;c.l+=(tz-c.l)*Math.min(1,dt*1.5);if(bus.t>9){bus.state='vai';if(bus.ramp){lifeG.remove(bus.ramp);bus.ramp=null}}}
-      if(bus.state==='vai'){c.l+=(.78-c.l)*Math.min(1,dt);if(c.s>64){lifeG.remove(c.g);traffic.splice(traffic.indexOf(c),1);bus=null;continue}}}
-    else{const lim2=c.ax==='x'?62:56;if(c.s*c.dir>lim2){c.s=-lim2*c.dir;c.v=6}}
+      if(bus.state==='parado'){bus.t+=dt;const tz=W.hoje?1.8:2.2;c.l+=(tz-c.l)*Math.min(1,dt*1.5);if(bus.t>9){bus.state='vai';if(bus.ramp){lifeG.remove(bus.ramp);bus.ramp=null}}}
+      if(bus.state==='vai'){c.l+=(1.8-c.l)*Math.min(1,dt);if(c.s>64){lifeG.remove(c.g);traffic.splice(traffic.indexOf(c),1);bus=null;continue}}}
+    else{const lim2=c.ax==='x'?62:56;if(c.s*c.dir>lim2){let ns=-lim2*c.dir;for(let k=0;k<12&&traffic.some(o=>o!==c&&o.ax===c.ax&&Math.abs(o.l-c.l)<1.2&&Math.abs(o.s-ns)<(o.L+c.L)/2+3);k++)ns-=c.dir*6;c.s=ns;c.v=6}}
     cPos(c);for(const w of c.g.userData.wheels)w.rotation.y-=c.v*dt/.33}}
 function hitDyn(x,z,r){for(const p of people)if(Math.hypot(x-p.x,z-p.z)<r+p.r)return{kind:'pessoa'};for(const c of traffic){const hw=c===bus?1.25:.95,a=c.ax==='x'?x-c.x:z-c.z,b=c.ax==='x'?z-c.z:x-c.x;if(Math.abs(a)<c.L/2+r&&Math.abs(b)<hw+r)return{kind:'carro'}}return null}
 /* vento, folhas, pássaros, nuvens */
@@ -739,7 +751,7 @@ const clouds=[];
  const sunS=new THREE.Sprite(new THREE.SpriteMaterial({map:tex(256,256,x=>{x.translate(128,128);x.fillStyle='#ffe14d';for(let i=0;i<12;i++){x.rotate(Math.PI/6);x.beginPath();x.moveTo(-10,-70);x.lineTo(0,-118);x.lineTo(10,-70);x.fill()}x.beginPath();x.arc(0,0,64,0,7);x.fill();x.lineWidth=6;x.strokeStyle='#120d1d';x.stroke()}),fog:false,toneMapped:false}));sunS.position.set(-60,70,-120);sunS.scale.setScalar(26);scene.add(sunS)}
 /* detalhes do bairro */
 function stripeTex(a,b){return tex(256,64,x=>{for(let i=0;i<8;i++){x.fillStyle=i%2?b:a;x.fillRect(i*32,0,32,64)}x.fillStyle='rgba(0,0,0,.25)';x.fillRect(0,56,256,8)})}
-function car(s){const v=vehicle(pick(['hatch','sedan','sedan','hatch','suv']),pick(VCOL));v.position.set((s.x0+s.x1)/2,0,(s.z0+s.z1)/2);const alongZ=(s.z1-s.z0)>(s.x1-s.x0);v.rotation.y=alongZ?(Math.random()<.5?Math.PI/2:-Math.PI/2):(Math.random()<.5?0:Math.PI);world.add(v)}
+function car(s){const v=vehicle(pick(['hatch','sedan','sedan','hatch']),pick(VCOL));v.position.set((s.x0+s.x1)/2,0,(s.z0+s.z1)/2);const alongZ=(s.z1-s.z0)>(s.x1-s.x0);v.rotation.y=alongZ?(Math.random()<.5?Math.PI/2:-Math.PI/2):(Math.random()<.5?0:Math.PI);world.add(v)}
 /* calçada quebrada: placas soltas e inclinadas, buracos, entulho e mato nas frestas */
 function brokenWalk(x0,x1,z0,z1,y,seed){let r=seed;const rnd=()=>{r=(r*16807)%2147483647;return r/2147483647};
   const slab=std(0xd2cbbf,{roughness:.95}),slab2=std(0xb9b0a2,{roughness:.95}),dark=std(0x3f362f,{roughness:1}),dirt=std(0x6e5a45,{roughness:1}),weed=std(0x5b9a3a,{roughness:.9}),rub=std(0x9a9389,{roughness:1}),S=.5;
