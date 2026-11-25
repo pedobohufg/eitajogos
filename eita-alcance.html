@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EITA! Alcance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 /* VOICE: clínico e acolhedor, frases curtas, sem jargão de game.
    IDEA: um aparelho de treino de bancada: painel de ajustes ao lado da janela do exercício.
@@ -81,6 +81,44 @@ body.nos{overflow:hidden}
 .back{display:inline-block;color:#dbe6f2;font-size:15px;text-decoration:none;padding:8px 0;margin-bottom:6px}.back:hover,.back:focus-visible{text-decoration:underline}
 pre,.scroll{overflow-x:auto}code{overflow-wrap:anywhere}
 @media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal}.stack td:empty{display:none}.two{grid-template-columns:minmax(0,1fr)}}
+
+/* ===== tema EITA! Jogos: mesmo visual do portal (pegboard roxo, Baloo 2 + Atkinson Hyperlegible, blocos com base sólida) ===== */
+:root{color-scheme:light;--bg:#F7F4FF;--ink:#1E1533;--mut:#5B5274;--line:#E2DBF3;--card:#fff;--noite:#2E1470;--roxo:#9560FD;--acc:#FF6B4A;--acaoE:#C7442A;--chart:#6B3FD6;--c:#FFD23F;--ce:#B8860B;
+  --fd:"Baloo 2","Trebuchet MS",system-ui,sans-serif;--ft:"Atkinson Hyperlegible",system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font-family:var(--ft);font-size:17px}
+.top{background-color:var(--noite);background-image:radial-gradient(circle at 15px 15px,rgba(8,2,30,.55) 3.6px,rgba(255,255,255,.07) 4.6px,transparent 5.4px);background-size:30px 30px;color:#fff;padding-bottom:clamp(28px,4vw,48px)}
+.top h1{font:800 clamp(46px,7vw,86px)/.92 var(--fd)!important;color:#fff!important;letter-spacing:-.01em!important;-webkit-text-stroke:0!important;text-shadow:none!important}
+.top h1::after{content:"";display:block;width:76px;height:10px;border-radius:6px;background:var(--c);box-shadow:0 3px 0 var(--ce);margin-top:14px}
+.top .wrap>p{color:#E6DEFF;font-size:clamp(16px,1.5vw,18px);max-width:62ch;margin-top:14px}
+.back{color:#D9#FFD23FFF!important;font-weight:700;font-size:15px}
+.logos{border-radius:14px;padding:7px 12px}.logos img{height:46px}
+:focus-visible{outline:3px solid var(--acc)!important;outline-offset:3px}
+.foot{background:var(--noite);color:#D9#FFD23FFF;border:0;font-size:15px}
+@media(max-width:600px){.logos img{height:36px}}
+.stage{margin-top:26px;background:var(--c);padding:10px;border-radius:22px;box-shadow:0 8px 0 var(--ce);overflow:visible}
+.stage .fig{border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#120d1d}
+.stage:fullscreen,.stage.pfull{padding:0;border-radius:0;box-shadow:none}.stage:fullscreen .fig,.stage.pfull .fig{border-radius:0;border:0}
+.chip{background:rgba(30,21,51,.8);font-weight:700}
+.bar,.note{background:transparent}.bar{padding:12px 2px 4px}.stage .note{color:var(--ink)!important;padding:2px 4px 6px;font-size:15px;font-weight:700}
+.top .grid{grid-template-columns:minmax(0,1fr)}.top .grid>div:empty{display:none}
+.stage .fig{height:clamp(340px,52vw,600px)}
+button{border-radius:14px;min-height:52px;font-family:var(--ft);transition:transform .12s,box-shadow .12s}
+button:active:not(:disabled){transform:translateY(3px)}
+.pri{background:var(--acc);color:#250A02;border-color:var(--acc);box-shadow:0 4px 0 var(--acaoE)}
+.sec{background:#fff;color:var(--ink);border:2px solid var(--ink);box-shadow:0 4px 0 rgba(30,21,51,.35)}
+.ghost{background:#fff;color:var(--ink);border:2px solid var(--line)}
+main.band{padding-top:clamp(36px,5vw,64px)}
+main h2,form h2{font:700 clamp(26px,2.6vw,32px)/1.15 var(--fd)!important;margin:0 0 6px!important}
+#cfg{background:#fff;border:2px solid var(--ink);border-radius:22px;padding:22px;box-shadow:0 7px 0 var(--ce);gap:18px}
+#rep,#hist,#como{background:#fff;border:2px solid var(--line);border-radius:22px;padding:clamp(18px,2.5vw,26px);margin:0 0 24px}
+#hist{border-top:2px solid var(--line)}#rep+#hist{margin-top:0}
+.sect{border-top:2px solid var(--line)}
+select,input[type=text],textarea{border:2px solid var(--line);border-radius:12px;min-height:48px;background:var(--bg)}
+select:focus,input[type=text]:focus{border-color:var(--roxo);outline:none}
+input[type=range],.chk input{accent-color:var(--roxo)}
+.kpi,.hc,.hbox{border:2px solid var(--line);border-radius:16px;background:#fff}
+.kpi b,.hv{font-family:var(--fd)}
+th{color:var(--mut);font-size:14px}th,td{border-bottom:1px solid var(--line)}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
