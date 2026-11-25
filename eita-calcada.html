@@ -413,12 +413,12 @@ function build(mode){disposeAll(world);crowns.length=0;SEM.heads.length=0;SEM.pe
     box(s.x0,s.x1,0,s.h+(s.kind==='mureta'?.45:0),s.z0,s.z1,std(s.col))}
   /* fachadas */
   const LB={farmacia:['FARMÁCIA','#1f7a4d','#ffffff'],loja:['MERCADINHO','#c0392b','#ffffff'],escola:['ESCOLA','#2c5aa0','#ffffff']};
-  building(-62,-46,-6.5,1,14,'','blocos',null);building(-46,-33,-6.5,1,9,'','colonial',null);buildPadaria();building(-25,-16,-6.5,1,15,'','deco',null);building(-16,-6.5,-6.5,1,8,'','farmacia',LB.farmacia);
-  building(6.5,14,-6.5,1,14,'','blocos',null);building(14,27,-6.5,1,12,'','modernista',LB.loja);building(27,46,-6.5,1,18,'','escola',LB.escola);building(46,62,-6.5,1,12,'','torre',null);
-  building(-62,-46,6.5,-1,7,'','geminadas',null);building(-46,-30.2,6.5,-1,12,'','torre',null,true,{px:'todos'});building(6.5,17,6.5,-1,7,'','geminadas',null);building(17,31,6.5,-1,12,'','torre',null);building(31,46,6.5,-1,14,'','blocos',null);building(46,62,6.5,-1,9,'','colonial',null);
-  buildingX(-27,-14,-6.5,1,12,'','torre',null);buildingX(-40,-27,-6.5,1,7,'','geminadas',null);buildingX(-54,-40,-6.5,1,9,'','colonial',null);
+  building(-62,-46,-6.5,1,14,'','sobrados',null);building(-46,-33,-6.5,1,9,'','sobrados',null);buildPadaria();building(-25,-16,-6.5,1,15,'','deco',null);building(-16,-6.5,-6.5,1,8,'','farmacia',LB.farmacia);
+  building(6.5,14,-6.5,1,14,'','sobrados',null);building(14,27,-6.5,1,12,'','modernista',LB.loja);building(27,46,-6.5,1,18,'','escola',LB.escola);building(46,62,-6.5,1,12,'','torre',null);
+  building(-62,-46,6.5,-1,7,'','sobrados',null);building(-46,-30.2,6.5,-1,12,'','torre',null,true,{px:'todos'});building(6.5,17,6.5,-1,7,'','sobrados',null);building(17,31,6.5,-1,12,'','sobrados',null);building(31,46,6.5,-1,14,'','sobrados',null);building(46,62,6.5,-1,9,'','sobrados',null);
+  buildingX(-27,-14,-6.5,1,12,'','sobrados',null,{seed:1});buildingX(-40,-27,-6.5,1,7,'','sobrados',null,{seed:2});buildingX(-54,-40,-6.5,1,9,'','sobrados',null,{seed:3});
   buildingX(-40,-27,6.5,-1,14,'','ufg',null);buildLab();buildingX(-54,-40,6.5,-1,12,'','torre',null);
-  buildingX(27,40,6.5,-1,9,'','colonial',null);buildingX(40,54,6.5,-1,7,'','geminadas',null);
+  buildingX(27,40,6.5,-1,9,'','sobrados',null,{seed:4});buildingX(40,54,6.5,-1,7,'','sobrados',null,{seed:5});
   buildingX(30.2,40,-6.5,1,14,'','blocos',null,{px:'abstrato'});buildingX(40,54,-6.5,1,15,'','deco',null);
   buildPosto();
   {const pm=toonM({color:0x5b6472});for(const [z,c] of [[-27.6,0x1f6fc0],[-26.4,0x8e5bd6]]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,7,6),pm);p.position.set(7.2,3.5,z);world.add(p);box(7.18,7.22,5.6,6.8,z,z+(z<-27?-1.4:1.4),toonM({color:c}))}}
@@ -1399,6 +1399,54 @@ ARCH.blocos={side:'#eaf0f5',sign:[.03,3.3],draw:(R,x,w,H)=>{R(0,0,w,H,'#eaf0f5')
    for(let k=0;k<4;k++){const p=box(x0+1+k*1.8,x0+2.6+k*1.8,H,H+.2,zc-1.5,zc+1.5,toonM({color:'#1f3a6a'}));p.rotation.z=.4}
    tank(x1-4,H+.4,zc+1.2,'#c0603a');for(const sx of [x0+8,x0+12.5])box(sx-.03,sx+.03,H,H+1.6,zc-.03,zc+.03,toonM({color:0x9aa4ae}));varal(x0+8,x0+12.5,H+1.55,zc);box(x0+.1,x1-.1,H,H+.7,zc-3.5,zc-3.4,toonM({color:'#2fae78'}));for(let k=0;k<4;k++){const s=new THREE.Mesh(new THREE.IcosahedronGeometry(.45,0),toonM({color:'#3fae78'}));s.position.set(x0+2+k*1.1,H+.8,zc-2.6);world.add(s)}}};
 
+
+/* ===== sobrados coloridos (referência de rua): casas estreitas, janelas com moldura, cornija,
+   térreo com loja e toldo listrado ou porta no alto de uma escadinha embutida no nicho da fachada ===== */
+const SOB={cores:[0xe8957a,0xefcaa4,0x86acdf,0xc4bdb3,0xd8786a,0xf4e6c8,0xb0cfa8,0xf5d27c,0xcbb9e3,0x8fcac2,0xf1aa96,0xa6bddc],
+  toldo:[['#c0392b','#ffffff'],['#e8742c','#ffffff'],['#1f7a4d','#ffffff'],['#2c5aa0','#ffffff'],['#c0392b','#f4e3c3']],
+  lojas:[['LANCHES','#c0392b','#fff'],['SALÃO','#8e5bd6','#fff'],['PAPELARIA','#2c5aa0','#fff'],['BAZAR','#e8742c','#fff'],['AÇAÍ','#5b2a86','#fff'],['CHAVEIRO','#2b2d42','#ffd166'],['FLORES','#1f7a4d','#fff'],['SAPATARIA','#7a3e1d','#fff']]};
+function sobRng(seed){let s=Math.abs(Math.floor(seed*7919))%2147483646+1;return()=>(s=s*16807%2147483647)/2147483647}
+ARCH.sobrados={custom:true,build:(c)=>{const {x0,x1,zf,dir}=c,depth=7.4,R=sobRng(x0*13.7+zf*3.1+(c.seed||0)),pk=a=>a[Math.floor(R()*a.length)];
+  const white=toonM({color:0xfbf7ef}),glass=toonM({color:0x6f9fca}),dark=toonM({color:0x2f3640}),rail=toonM({color:0x3a3f47}),stone=toonM({color:0xc9c3b8});
+  const zz=d=>zf-dir*d,B=(a,b,y0,y1,d0,d1,m)=>box(a,b,y0,y1,Math.min(zz(d0),zz(d1)),Math.max(zz(d0),zz(d1)),m);
+  /* divide o lote em casas de 4,4–6,2 m */
+  const W=x1-x0;let n=Math.max(1,Math.round(W/5.3));const ws=[];let tot=0;for(let i=0;i<n;i++){const w=.85+R()*.3;ws.push(w);tot+=w}
+  let xa=x0,last=-1;for(let i=0;i<n;i++){const xb=i===n-1?x1:xa+ws[i]/tot*W,w=xb-xa,xc=(xa+xb)/2;
+    let ci;do ci=Math.floor(R()*SOB.cores.length);while(ci===last);last=ci;const col=SOB.cores[ci],wall=toonM({color:col}),trim=toonM({color:new THREE.Color(col).multiplyScalar(.78).getHex()});
+    const fl=2+Math.floor(R()*2),H=3.4+fl*2.8,shop=R()<.42,al=.8;/* al: profundidade do nicho da escada */
+    /* corpo da casa (atrás do nicho) */
+    B(xa,xb,0,H,al,depth,wall);
+    /* faixa inferior, entre-pisos, cornija e platibanda */
+    B(xa,xb,0,.45,-.04,al,trim);
+    for(let f=1;f<=fl;f++)B(xa,xb,3.25+(f-1)*2.8,3.37+(f-1)*2.8,-.06,al,white);
+    B(xa-.02,xb+.02,H-.05,H+.28,-.22,al,white);B(xa-.02,xb+.02,H-.28,H-.18,-.12,al,white);B(xa,xb,H+.28,H+.75,0,al+.4,wall);
+    if(R()<.5){B(xb-1.6,xb-1.0,H+.75,H+1.9,al+2,al+2.6,trim)}else{const t=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.9,10),toonM({color:0x3fa7b6}));t.position.set(xa+1.4,H+1.2,zz(al+2.6));world.add(t)}
+    /* janelas dos andares */
+    const nw=w>5.3?2:w>3.6?2:1,wW=nw===2?.95:1.1,wH=1.55;
+    const janela=(cx,y,floreira)=>{B(cx-wW/2-.1,cx+wW/2+.1,y-.1,y+wH+.1,-.05,.05,white);B(cx-wW/2,cx+wW/2,y,y+wH,-.065,.05,glass);B(cx-.03,cx+.03,y,y+wH,-.075,-.06,white);B(cx-wW/2,cx+wW/2,y+wH*.6,y+wH*.6+.05,-.075,-.06,white);
+      B(cx-wW/2-.18,cx+wW/2+.18,y-.2,y-.1,-.16,.05,white);B(cx-wW/2-.14,cx+wW/2+.14,y+wH+.1,y+wH+.24,-.1,.05,white);
+      if(floreira){B(cx-wW/2,cx+wW/2,y-.42,y-.2,-.28,-.06,toonM({color:0x8a5a3a}));for(let k=0;k<4;k++){const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.13,0),toonM({color:k%2?0x3fae78:pk([0xe63946,0xffd166,0xff9ec7,0xffffff])}));b.position.set(cx-wW/2+.15+k*(wW-.3)/3,y-.14,zz(-.17));world.add(b)}}};
+    for(let f=0;f<fl;f++){const y=3.85+f*2.8;for(let k=0;k<nw;k++){const cx=nw===1?xc:xa+w*(k?.72:.28);janela(cx,y,f===0&&R()<.45)}}
+    if(shop){/* térreo comercial: vitrine, porta de vidro no nível da calçada e toldo listrado */
+      B(xa,xb,.45,3.25,0,al,wall);const g0=xa+.35,g1=xb-.35;B(g0-.08,g1+.08,.35,2.75,-.03,.02,white);B(g0,g1,.45,2.65,-.04,.03,toonM({color:0x8fc7e0}));
+      const dx=xa+w*.72;B(dx-.5,dx+.5,.4,2.6,-.05,.02,white);B(dx-.42,dx+.42,.45,2.52,-.06,.02,toonM({color:0x5c95b8}));B(dx+.25,dx+.3,1.2,1.5,-.1,-.06,dark);
+      for(let k=1;k<4;k++){const x=g0+k*(dx-.5-g0)/4;if(x<dx-.6)B(x-.03,x+.03,.45,2.65,-.06,.02,white)}
+      const [a,b]=pk(SOB.toldo);awning(xc,w-.5,2.95,zz(0),dir,a,b);
+      if(R()<.7){const L=pk(SOB.lojas);const sg=plane(xc,3.55+.0,zz(-.04),Math.min(3.2,w-1),.42,dir>0?0:Math.PI,toonM({map:signTex(L[0],L[1],L[2],512,96)}));sg.userData.dyn=true}}
+    else{/* térreo residencial: nicho com escadinha de 3 degraus até a porta, corrimão e janela ao lado */
+      const sx=xa+w*(R()<.5?.28:.72),sw=1.25,sy=.54;/* porta fica 54 cm acima da calçada */
+      B(xa,sx-sw/2,.45,3.25,0,al,wall);B(sx+sw/2,xb,.45,3.25,0,al,wall);B(sx-sw/2,sx+sw/2,sy+2.45,3.25,0,al,wall);
+      for(let k=0;k<3;k++)B(sx-sw/2,sx+sw/2,0,(k+1)*.18,k*al/3,al,stone);
+      B(sx-.55,sx+.55,sy,sy+2.3,al-.02,al+.02,white);B(sx-.45,sx+.45,sy,sy+2.2,al-.05,al,toonM({color:pk([0x7a4a24,0x2f4a7a,0xa63d2f,0x2f6b4f,0x5b2a86])}));B(sx+.28,sx+.34,sy+1.0,sy+1.12,al-.09,al-.05,toonM({color:0xd9b25a}));
+      B(sx-.6,sx+.6,sy+2.3,sy+2.42,al-.1,al+.02,white);
+      const lamp=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6),toonM({color:0xfff3c4,emissive:0xffe9a8,emissiveIntensity:.6}));lamp.position.set(sx+.75,sy+2.1,zz(al-.12));world.add(lamp);
+      for(const s of [-1,1]){const rx=sx+s*(sw/2-.06);for(let k=0;k<3;k++){const zp=(k+.5)*al/3;B(rx-.02,rx+.02,(k+1)*.18,(k+1)*.18+.9,zp-.02,zp+.02,rail)}const r=new THREE.Mesh(new THREE.BoxGeometry(.05,.05,Math.hypot(al,.54)),rail);r.position.set(rx,.18+.9+.27,zz(al/2));r.rotation.x=dir*Math.atan2(.54,al)*-1;world.add(r)}
+      const wx=sx<xc?xa+w*.72:xa+w*.28;if(Math.abs(wx-sx)>1.5)janela(wx,1.05,R()<.5);
+      /* ripa da varanda/beiral sobre a porta */
+      B(sx-sw/2-.15,sx+sw/2+.15,3.25,3.37,-.35,al,white)}
+    /* divisa entre casas */
+    if(i<n-1)B(xb-.06,xb+.06,0,H+.28,-.08,al,white);
+    xa=xb}}};
 /* ===== detalhes de rua ===== */
 function isaTex(){return tex(128,128,x=>{x.fillStyle='#1f5fbf';x.fillRect(0,0,128,128);x.strokeStyle='#fff';x.fillStyle='#fff';x.lineWidth=9;x.lineCap='round';x.beginPath();x.arc(60,24,10,0,7);x.fill();x.beginPath();x.moveTo(58,40);x.lineTo(56,72);x.lineTo(84,72);x.lineTo(96,100);x.stroke();x.beginPath();x.moveTo(56,54);x.lineTo(80,54);x.stroke();x.beginPath();x.arc(56,88,24,Math.PI*.15,Math.PI*1.55);x.stroke()})}
 function muralTex(kind,w,h){return archTex(w,h,(x,R)=>{const cw=x.canvas.width,ch=x.canvas.height;
@@ -1438,6 +1486,7 @@ ARCH.ufg={side:'#e9e7e1',sign:[.03,3.3],draw:(R,x,w,H)=>{R(0,0,w,H,'#e9e7e1');R(
    const bx=(x0+x1)/2;for(const s of [-1,1])box(bx+s*4.2-.08,bx+s*4.2+.08,H,H+3,zf-dir*.6,zf-dir*.45,toonM({color:0x5b6472}));const sg=new THREE.Mesh(new THREE.PlaneGeometry(9.6,2.4),toonM({map:logoSign('ufg',1024,256,'UFG','Universidade Federal de Goiás','#ffffff','#1f4e9c')}));sg.position.set(bx,H+1.7,zf-dir*.4);if(dir<0)sg.rotation.y=Math.PI;world.add(sg);
    box(x0+.4,x1-.4,H,H+.5,zc-3,zc+3,cn)}};
 function building(x0,x1,zf,dir,H,col,style,label,shop=true,opts={}){const A=ARCH[style];if(!A)return buildingOld(x0,x1,zf,dir,H,col,style,label,shop);
+ if(A.custom){A.build({x0,x1,zf,dir,H,seed:opts.seed||0});return}
  const depth=7.4,floors=Math.max(2,Math.round(H/3)),z1=zf-dir*depth,zc=(zf+z1)/2,wdt=x1-x0;
  const fm=toonM({map:archTex(wdt,H,(x,R)=>A.draw(R,x,wdt,H)),color:0xffffff}),sm=toonM({map:sideTex(A.side,floors),color:0xffffff}),rm=toonM({color:0xd9d4cc}),cm=toonM({color:new THREE.Color(A.side).getHex()});
  const mats=[sm,sm,rm,rm,dir>0?fm:cm,dir>0?cm:fm];if(opts.px)mats[0]=toonM({map:muralTex(opts.px,depth,H)});if(opts.nx)mats[1]=toonM({map:muralTex(opts.nx,depth,H)});const b=new THREE.Mesh(new THREE.BoxGeometry(wdt,H,depth),mats);b.position.set((x0+x1)/2,H/2,zc);b.castShadow=b.receiveShadow=true;world.add(b);
