@@ -34,3 +34,16 @@ São arquivos HTML autocontidos, feitos com [Three.js](https://threejs.org/) (ca
 
 ---
 Lab.EITA · Universidade Federal de Goiás
+
+## Personagens (estilo padrão)
+
+Todas as pessoas do EITA! Calçada seguem o estilo definido pelos frames de referência do Lab.EITA (bonecos de traço simples, cabeça grande, cores suaves).
+A biblioteca fica em `personagens/eita-pessoas.js`:
+
+- **Corpos:** mulher, homem, criança, idoso e idosa.
+- **Roupas:** camiseta, camisa com gola e botões, blusa, regata, vestido, jaqueta, jaleco, calça, bermuda, short e saia, com listras e estampas.
+- **Cabelos:** chanel, longo, tigela, lateral, curto, crespo, nuvem, black, calvo, rabo e coque. Inclui barba.
+- **Acessórios:** bengala, bengala branca, muletas, celular, mochila, caixa de entrega, vassoura, boné e touca.
+
+O jogo sorteia tom de pele, cabelo e roupas para cada tipo de pessoa.
+Para ver o elenco e as variações, abra `personagens/index.html`.
