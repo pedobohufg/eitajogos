@@ -140,10 +140,11 @@ main .band{padding-block:clamp(44px,6vw,80px)}
       <div class="ov" id="card" hidden><div class="panel card"><span class="k" id="cKind"></span><h3 id="cTitle"></h3><p id="cWhat"></p><div><div class="lab">O que diz a norma</div><p id="cNorm"></p></div><div><div class="lab">Como resolver</div><p id="cFix"></p></div><p id="cNext" style="font-weight:700"></p><div class="row"><button class="btn pri" id="bGo" type="button">Continuar</button><button class="btn pp" id="bHelp2" type="button">Pedir ajuda</button></div></div></div>
       <div class="ov" id="start"><div class="panel"><h2>Escolha o bairro</h2><p>Você usa uma cadeira de rodas manual e precisa resolver sete coisas: comprar pão e remédio, trocar sua cadeira de rodas por uma nova no Lab.EITA da UFG, comprar frutas, pegar o ônibus, ir ao posto de saúde e encontrar uma amiga na praça. Comece pelo bairro como ele é hoje e depois repita no bairro acessível.</p>
         <div class="row"><button class="btn pri" id="bHoje" type="button">Bairro como é hoje</button><button class="btn pp" id="bAcess" type="button">Bairro acessível</button><button class="btn" id="bVR" type="button" hidden>Entrar em VR</button></div>
-        <p class="ctrl"><b>Computador:</b> W ou ↑ empurra (segure para continuar empurrando), S ou ↓ dá ré, A/D ou ←/→ giram, Espaço freia e descansa, H pede ajuda. Arraste a tela para olhar em volta (duplo clique centraliza).<br><b>Celular:</b> botões na tela.<br><b>Quest 3:</b> jogue sentado. Gatilho ou alavanca para a frente empurra, alavanca direita gira de 30 em 30°, grip freia, A continua e B pede ajuda.</p></div></div>
+        <p class="ctrl"><b>Computador:</b> W ou ↑ empurra (segure para continuar empurrando), S ou ↓ dá ré, A/D ou ←/→ giram, Espaço freia e descansa, H pede ajuda, P pausa. Arraste a tela para olhar em volta (duplo clique centraliza).<br><b>Celular:</b> botões na tela.<br><b>Quest 3:</b> jogue sentado. Gatilho ou alavanca para a frente empurra, alavanca direita gira de 30 em 30°, grip freia, A continua, B pede ajuda e Y abre o menu. Só com as mãos: toque nos botões AJUDA, MENU e CENTRALIZAR nos braços da cadeira. No MENU dá para recomeçar ou sair do VR.</p></div></div>
+      <div class="ov" id="pause" hidden><div class="panel"><h2>Jogo pausado</h2><p>Continue de onde parou, recomece o percurso ou escolha outro bairro.</p><div class="row"><button class="btn pri" id="pCont" type="button">Continuar</button><button class="btn pp" id="pRe" type="button">Recomeçar percurso</button><button class="btn" id="pIni" type="button">Escolher bairro</button></div></div></div>
       <div class="ov" id="end" hidden><div class="panel"><h2>Percurso concluído</h2><p id="eMsg"></p><table id="eTab"></table><div class="row"><button class="btn pri" id="bOther" type="button"></button><button class="btn" id="bAgain" type="button">Jogar de novo</button><button class="btn" id="bMenu" type="button">Início</button></div></div></div>
     </div>
-    <div class="bar"><button class="btn pp" id="bHelp" type="button">Pedir ajuda (H)</button><button class="btn" id="bFull" type="button">Tela cheia</button></div>
+    <div class="bar"><button class="btn pp" id="bHelp" type="button">Pedir ajuda (H)</button><button class="btn" id="bPause" type="button">Pausar (P)</button><button class="btn" id="bRestart" type="button">Recomeçar percurso</button><button class="btn" id="bInicio" type="button">Escolher bairro</button><button class="btn" id="bFull" type="button">Tela cheia</button></div>
   </div>
 </div></header>
 <main>
@@ -234,7 +235,7 @@ function buildWorld(mode){const hoje=mode==='hoje',Z=[],S=[],B=[];
   /* barreiras */
   const bar=(id,x0,x1,z0,z1,kind,title,aconteceu,norma,solucao,help)=>B.push({id,x0,x1,z0,z1,kind,title,aconteceu,norma,solucao,help});
   if(hoje){
-    bar('entulho',-40,-33.4,-6.5,-3.5,'bloqueio','Calçada bloqueada por caçamba','A caçamba de entulho ocupa quase toda a calçada. Sobram uns 50 cm, e a cadeira precisa de pelo menos 80 cm para passar.','A calçada precisa de uma faixa livre de pelo menos 1,20 m, sem nenhum obstáculo.','Caçambas e materiais de obra ficam na rua, sinalizados, e nunca na faixa livre da calçada.',{x:-33,z:-5,yaw:-Math.PI/2});
+    bar('entulho',-39.7,-33.4,-6.5,-3.5,'bloqueio','Calçada bloqueada por caçamba','A caçamba de entulho ocupa a calçada. Sobram uns 50 cm até o meio-fio, e a cadeira precisa de pelo menos 80 cm. Também não dá para descer para a rua: o meio-fio é alto e aqui não há rebaixamento.','A calçada precisa de uma faixa livre de pelo menos 1,20 m, sem nenhum obstáculo.','Caçambas e materiais de obra ficam na rua, sinalizados, e nunca na faixa livre da calçada.',{x:-33,z:-5,yaw:-Math.PI/2});
     bar('degrauPadaria',-30.2,-27.8,-6.6,-5.4,'bloqueio','Degrau na porta da padaria','A entrada tem um degrau de 17 cm. Sem ajuda, não dá para entrar.','A entrada precisa ser acessível: sem degraus, ou com rampa quando houver desnível.','Nivelar a soleira com a calçada ou fazer uma pequena rampa dentro do lote.',{x:-29,z:-10.2,yaw:0});
     bar('banca',-24.2,-19.6,-6.5,-3.5,'bloqueio','Banca e poste estreitam a passagem','Entre a banca e o poste sobra menos espaço do que a largura da cadeira.','Postes, placas, lixeiras e bancas ficam na faixa de serviço, junto ao meio-fio, sem invadir a faixa livre de 1,20 m.','Mover o poste para a faixa de serviço e recuar a banca para a faixa de acesso, junto aos imóveis.',{x:-19,z:-5.1,yaw:-Math.PI/2});
     bar('degrauFarmacia',-15.4,-12.4,-6.6,-5.2,'bloqueio','Degrau e porta estreita na farmácia','Um degrau de 17 cm avança sobre a calçada e a porta tem só 70 cm de vão. O atendente precisa sair para atender você na rua.','A entrada precisa ser acessível, sem degrau ou com rampa dentro do lote, e a porta precisa de pelo menos 80 cm de vão livre.','Nivelar a soleira por dentro do lote e trocar a porta por uma de correr automática, bem larga.',null);
@@ -501,7 +502,7 @@ let G=null,mode='hoje',results={},keys={},touch={},lookYaw=0,lookPitch=-.34;
 const P={x:0,z:0,yaw:0,v:0,wr:0,h:.15,energy:100,lastPush:0,stroke:0};
 function newGame(m){mode=m;build(m);trocarCadeira(false);Object.assign(P,{x:START.x,z:START.z,yaw:START.yaw,v:0,wr:0,energy:100,lastPush:0});P.h=hAt(W,P.x,P.z);
   G={m,mi:0,t0:performance.now(),time:0,dist:0,road:0,pushes:0,spent:0,help:0,seen:new Set(),done:[],paused:false,card:null,tip:'',tipUntil:0,lastBlock:null,blockT:0,over:false,risk:new Set()};
-  setBeacon();ambStart();$('start').hidden=true;$('end').hidden=true;$('hud').hidden=false;updHud(true);
+  setBeacon();ambStart();$('start').hidden=true;$('end').hidden=true;$('pause').hidden=true;$('card').hidden=true;cardP.visible=false;$('hud').hidden=false;updHud(true);
   toast(W.M[0].t+' · '+W.M[0].d,5000)}
 function setBeacon(){const q=W.M[G.mi];if(!q){beacon.visible=false;return}beacon.visible=true;const cx=(q.x0+q.x1)/2,cz=(q.z0+q.z1)/2;beacon.position.set(cx,hAt(W,cx,cz)??0,cz);const lb=beacon.userData.lb;if(lb){if(lb.material.map)lb.material.map.dispose();lb.material.map=signTex(q.lbl||q.t,'#9560fd','#ffffff',512,128);lb.material.needsUpdate=true}}
 
@@ -539,12 +540,12 @@ function physics(dt,now){if(G.paused||G.over)return;
   if(q&&q.s==='quebrado'&&Math.abs(P.v)>.12){HD.shake=now+140;if(renderer.xr.isPresenting&&now-HD.hap>150){HD.hap=now;const ss=renderer.xr.getSession();if(ss)for(const src of ss.inputSources){try{src.gamepad?.hapticActuators?.[0]?.pulse?.(.2,45)}catch(e){}}}}
   {const qq=zoneAt(W,P.x,P.z);if(qq&&qq.s==='asfalto'&&qq.id!=='faixa')G.road+=Math.abs(P.v)*dt}
   /* barreiras e missão */
-  for(const b of barrierAt(P.x,P.z))if(!G.seen.has(b.id)){G.seen.add(b.id);if(b.id==='quebrado'&&b.kind!=='solucao')pop('CRAC!',frontOf(1,.4),'burst',1000);if(b.kind==='solucao')toast('✓ '+b.title+': '+b.aconteceu,5000);else if(b.kind==='bloqueio'){if(b.id==='rampaPosto'){(G.cardShown=G.cardShown||new Set()).add(b.id);G.pending=b}}else G.pending=b}
+  for(const b of barrierAt(P.x,P.z))if(!G.seen.has(b.id)){G.seen.add(b.id);if(b.id==='quebrado'&&b.kind!=='solucao')pop('CRAC!',frontOf(1,.4),'burst',1000);if(b.kind==='solucao')toast('✓ '+b.title+': '+b.aconteceu,5000);else if(b.kind==='bloqueio'){G.cardShown=G.cardShown||new Set();if(!G.cardShown.has(b.id)){G.cardShown.add(b.id);G.pending=b}}else G.pending=b}
   const M=W.M[G.mi];if(M&&P.x>=M.x0&&P.x<=M.x1&&P.z>=M.z0&&P.z<=M.z1)missionDone()}
 let wheelSpin=0;
 function bump(){if(audio)beep(140,.12,'sine',.12);pop(pick(['TUM!','PLOFT!','TÓIN!']),frontOf(.9,.9),'burst',900)}
 function blocked(m,now){const bs=barrierAt(P.x+fwd(P.yaw).x*.5,P.z+fwd(P.yaw).z*.5).concat(barrierAt(P.x,P.z)).filter(b=>b.kind==='bloqueio'||b.kind==='risco'||b.help);
-  const b=bs.find(b=>b.kind==='bloqueio'||b.help);if(b){G.lastBlock=b;G.blockT=now;if(!G.cardShown?.has(b.id)){(G.cardShown=G.cardShown||new Set()).add(b.id);showCard(b);return}toast('Barreira: '+b.title+'. Toque em “Pedir ajuda” ou procure outro caminho.',2500);return}
+  const b=bs.find(b=>b.kind==='bloqueio'||b.help);if(b){if(G.lastBlock!==b||now-G.blockT>20000)G.blockN=0;G.lastBlock=b;G.blockT=now;G.blockN=(G.blockN||0)+1;if(!G.cardShown?.has(b.id)||(b.help&&G.blockN>=3)){(G.cardShown=G.cardShown||new Set()).add(b.id);G.blockN=0;showCard(b);return}toast(b.help?'Não dá para passar sozinho. Toque em “Pedir ajuda”.':'Barreira: '+b.title+'. Procure outro caminho.',2500);return}
   if(m.why==='degrau')toast(m.dh>.1?'Degrau ou meio-fio: a cadeira não passa.':'Desnível: as rodinhas da frente travam.',1800);else toast('Passagem bloqueada.',1200)}
 function clearAround(x,z){for(const p of people){if(p.fixed||Math.hypot(p.x-x,p.z-z)>1.6)continue;p.s+=p.dir*3.2;if(p.ax==='x')p.x=p.s;else p.z=p.s;p.g.position.x=p.x;p.g.position.z=p.z}}
 function askHelp(){const b=G.card&&G.card.help?G.card:(G.lastBlock&&performance.now()-G.blockT<6000?G.lastBlock:null);if(!b||!b.help){const q=zoneAt(W,P.x,P.z),id=q&&q.id,ex=[[['praca','rampaPraca','degrau'],{x:-5,z:16,yaw:0}],[['padaria','portaPad'],{x:-29,z:-5,yaw:-Math.PI/2}],[['lab','portaLab'],{x:5,z:-20,yaw:0}],[['plataforma','patamar','rampaPosto','patio'],{x:5,z:22,yaw:0}]].find(e=>e[0].includes(id))||(q&&(q.s==='pedrisco'||q.s==='grama')?[0,{x:-5,z:16,yaw:0}]:null);
@@ -558,8 +559,12 @@ function missionDone(){const M=W.M[G.mi];G.done.push({t:M.t,at:G.time});G.mi++;p
 const KIND={bloqueio:['Barreira','#ff6b4a'],risco:['Risco','#e0412c'],esforco:['Esforço','#e0a21b'],solucao:['Solução','#2e9e5b'],missao:['Missão','#9560fd']};
 function showCard(b){G.paused=true;G.card=b;P.v=0;const [k,c]=KIND[b.kind];$('cKind').textContent=k;$('cKind').style.background=c;$('cTitle').textContent=b.title;$('cWhat').textContent=b.aconteceu;
   $('cNorm').parentElement.hidden=!b.norma;$('cNorm').textContent=b.norma||'';$('cFix').parentElement.hidden=!b.solucao;$('cFix').textContent=b.solucao||'';
-  $('cNext').hidden=!b.next;if(b.next)$('cNext').textContent='Próxima missão: '+b.next.t+'. '+b.next.d;
+  $('cNext').hidden=!b.next&&!b.help;if(b.next)$('cNext').textContent='Próxima missão: '+b.next.t+'. '+b.next.d;else if(b.help)$('cNext').textContent='Sozinho, não dá para seguir por aqui. Toque em “Pedir ajuda”: alguém leva você até depois da barreira. Ou volte e procure outro caminho.';
   $('bHelp2').hidden=!b.help;$('bGo').textContent=b.help?'Procurar outro caminho':'Continuar';$('card').hidden=false;drawVrCard(b);if(audio&&b.kind!=='missao')beep(b.kind==='bloqueio'?220:330,.2,'sine',.1)}
+function openMenu(){if(!G)return;G.menu=true;G.paused=true;P.v=0;$('pause').hidden=false;if(renderer.xr.isPresenting){const {x,t}=cardVR;x.clearRect(0,0,1024,640);x.fillStyle='rgba(22,14,38,.95)';x.beginPath();x.roundRect(4,4,1016,632,40);x.fill();
+  x.fillStyle='#fff';x.font='bold 58px "Instrument Sans",sans-serif';x.fillText('Jogo pausado',40,110);x.font='34px "Instrument Sans",sans-serif';x.fillStyle='#e9e2ff';let y=180;for(const l of wrap(x,'Continue de onde parou, recomece o percurso, troque de bairro ou saia da realidade virtual. Os botões estão logo abaixo.',940)){x.fillText(l,40,y);y+=46}t.needsUpdate=true;cardP.visible=true}}
+function closeMenu(){if(!G)return;G.menu=false;$('pause').hidden=true;G.paused=!!G.card;if(G.card)drawVrCard(G.card);else cardP.visible=false}
+function exitVR(){const s=renderer.xr.getSession();if(s)s.end().catch(()=>{});if(G)G.paused=true;$('end').hidden=true;$('start').hidden=false}
 function closeCard(){$('card').hidden=true;if(G){G.paused=false;G.card=null;G.pending=null}cardP.visible=false}
 let toastT=0;function toast(t,ms){$('toast').textContent=t;$('toast').hidden=false;toastT=performance.now()+ms;G&&(G.tip=t,G.tipUntil=toastT)}
 
@@ -598,7 +603,11 @@ let drag=null;canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.cl
 canvas.addEventListener('dblclick',()=>{lookYaw=0;lookPitch=-.34});
 $('bHelp').onclick=()=>{initAudio();askHelp()};$('bHelp2').onclick=askHelp;$('bGo').onclick=closeCard;
 $('bHoje').onclick=()=>{initAudio();newGame('hoje')};$('bAcess').onclick=()=>{initAudio();newGame('acess')};
-$('bAgain').onclick=()=>newGame(mode);$('bOther').onclick=()=>newGame(mode==='hoje'?'acess':'hoje');$('bMenu').onclick=()=>{$('end').hidden=true;$('start').hidden=false};
+$('bAgain').onclick=()=>newGame(mode);
+const restart=()=>{if(G&&G.menu)closeMenu();newGame(mode);toast('Percurso recomeçado do início.',2500)},inicio=()=>{if(G){if(G.menu)closeMenu();G.paused=true}if(renderer.xr.isPresenting){exitVR();return}$('card').hidden=true;$('end').hidden=true;$('start').hidden=false};
+$('bRestart').onclick=()=>{if(G)restart()};$('bInicio').onclick=inicio;$('bPause').onclick=()=>{if(!G||G.over)return;if(G.menu)closeMenu();else openMenu()};
+$('pCont').onclick=()=>closeMenu();$('pRe').onclick=restart;$('pIni').onclick=inicio;
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P')&&G&&!G.over&&!e.repeat&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){if(G.menu)closeMenu();else openMenu()}});$('bOther').onclick=()=>newGame(mode==='hoje'?'acess':'hoje');$('bMenu').onclick=()=>{$('end').hidden=true;$('start').hidden=false};
 
 /* realidade virtual */
 const vrIn={up:false,down:false,brake:false,turn:0};let snapReady=true,btnPrev={};
@@ -609,7 +618,7 @@ function wrap(x,t,w){const out=[];let line='';for(const word of t.split(' ')){co
 function drawVrCard(b){if(!renderer.xr.isPresenting)return;const {x,c,t}=cardVR,[k,col]=KIND[b.kind];x.clearRect(0,0,1024,640);x.fillStyle='rgba(22,14,38,.95)';x.beginPath();x.roundRect(4,4,1016,632,40);x.fill();x.fillStyle=col;x.beginPath();x.roundRect(40,36,220,52,26);x.fill();x.fillStyle='#fff';x.font='bold 30px "Instrument Sans",sans-serif';x.fillText(k,62,72);
   x.font='bold 46px "Instrument Sans",sans-serif';let y=150;for(const l of wrap(x,b.title,940)){x.fillText(l,40,y);y+=54}x.font='34px "Instrument Sans",sans-serif';x.fillStyle='#e9e2ff';for(const l of wrap(x,b.aconteceu||'',940)){x.fillText(l,40,y);y+=44}
   if(b.solucao){y+=10;x.fillStyle='#9ee6b8';for(const l of wrap(x,'Solução: '+b.solucao,940)){x.fillText(l,40,y);y+=42}}
-  x.fillStyle='#b893ff';x.font='bold 32px "Instrument Sans",sans-serif';x.fillText(b.help?'Toque OUTRO CAMINHO ou PEDIR AJUDA (controle: A ou B)':'Toque CONTINUAR (controle: A ou gatilho)',40,600);t.needsUpdate=true;cardP.visible=true}
+  x.fillStyle=b.help?'#ffd166':'#b893ff';x.font='bold 32px "Instrument Sans",sans-serif';if(b.help){let yy=556;for(const l of wrap(x,'Sozinho não dá para passar. Toque PEDIR AJUDA e alguém leva você até depois da barreira (controle: B).',940)){x.fillText(l,40,yy);yy+=38}}else x.fillText('Toque CONTINUAR (controle: A ou gatilho)',40,600);t.needsUpdate=true;cardP.visible=true}
 function drawVrHud(){const {x,t}=hudVR;x.clearRect(0,0,1024,300);x.fillStyle='rgba(22,14,38,.88)';x.beginPath();x.roundRect(4,4,1016,292,36);x.fill();const M=W.M[G.mi];x.fillStyle='#fff';x.font='bold 40px "Instrument Sans",sans-serif';x.fillText(M?`Missão ${G.mi+1}/${W.M.length}: ${M.t}`:'Percurso concluído',30,62);
   x.fillStyle='#3a2f55';x.fillRect(30,100,640,34);x.fillStyle=P.energy<25?'#e0412c':P.energy<50?'#e0a21b':'#2e9e5b';x.fillRect(30,100,640*P.energy/100,34);x.fillStyle='#fff';x.font='30px "Instrument Sans",sans-serif';x.fillText('Energia '+fmt(P.energy)+'%',690,128);
   x.fillStyle='#d7ccff';x.fillText(`Tempo ${mmss(G.time)} · ajuda ${G.help}×`,30,186);if(performance.now()<G.tipUntil){x.fillStyle='#ffd27a';x.fillText(G.tip.slice(0,62),30,250)}t.needsUpdate=true}
@@ -665,13 +674,17 @@ function mkBtn(label,w,h,col){const c=document.createElement('canvas');c.width=5
     x.fillStyle=hl?'#1d1430':'#fff';let fs=Math.round(c.height*.42);x.font='bold '+fs+'px "Instrument Sans",sans-serif';while(x.measureText(b.label).width>c.width-50&&fs>20){fs-=2;x.font='bold '+fs+'px "Instrument Sans",sans-serif'}
     x.textAlign='center';x.textBaseline='middle';x.fillText(b.label,c.width/2,c.height/2+2);t.needsUpdate=true};
   b.draw(false);return b}
-const BT={help:mkBtn('AJUDA',.17,.075,'#e85d75'),center:mkBtn('CENTRALIZAR',.17,.075,'#5b6b8a'),go:mkBtn('CONTINUAR',.27,.09,'#ff6b4a'),help2:mkBtn('PEDIR AJUDA',.27,.09,'#e85d75'),other:mkBtn('JOGAR NO OUTRO BAIRRO',.36,.09,'#ff6b4a')};
+const BT={help:mkBtn('AJUDA',.17,.075,'#e85d75'),center:mkBtn('CENTRALIZAR',.17,.075,'#5b6b8a'),go:mkBtn('CONTINUAR',.27,.09,'#ff6b4a'),help2:mkBtn('PEDIR AJUDA',.27,.09,'#e85d75'),other:mkBtn('JOGAR NO OUTRO BAIRRO',.36,.09,'#ff6b4a'),menu:mkBtn('MENU',.13,.075,'#4A2499'),mCont:mkBtn('CONTINUAR',.27,.085,'#ff6b4a'),mRe:mkBtn('RECOMEÇAR PERCURSO',.27,.085,'#9560fd'),mBai:mkBtn('TROCAR DE BAIRRO',.27,.085,'#2a9d8f'),mSair:mkBtn('SAIR DO VR',.27,.085,'#5b6b8a'),endMenu:mkBtn('MENU',.17,.075,'#4A2499')};
 BT.help.cb=()=>{if(G&&!G.over&&!G.card)askHelp()};BT.center.cb=()=>{coT=0;toast('Cadeira ajustada ao seu corpo.',1600)};
-BT.go.cb=()=>{if(G&&G.card)closeCard()};BT.help2.cb=()=>{if(G&&G.card)askHelp()};BT.other.cb=()=>{$('bOther').click()};
+BT.go.cb=()=>{if(G&&G.card)closeCard()};
+BT.menu.cb=BT.endMenu.cb=()=>openMenu();BT.mCont.cb=()=>closeMenu();BT.mRe.cb=()=>{closeMenu();newGame(mode);toast('Percurso recomeçado do início.',2500)};
+BT.mBai.cb=()=>{closeMenu();newGame(mode==='hoje'?'acess':'hoje');toast(mode==='hoje'?'Bairro como é hoje.':'Bairro acessível.',2500)};BT.mSair.cb=()=>{closeMenu();exitVR()};BT.help2.cb=()=>{if(G&&G.card)askHelp()};BT.other.cb=()=>{$('bOther').click()};
 const _tl=new THREE.Vector3();
-function updButtons(now){const xr=renderer.xr.isPresenting,card=!!(G&&G.card),over=!!(G&&G.over),hb=card&&!!G.card.help;
+function updButtons(now){const xr=renderer.xr.isPresenting,menu=!!(G&&G.menu),card=!!(G&&G.card)&&!menu,over=!!(G&&G.over)&&!menu,hb=card&&!!G.card.help;
   const place=(b,on,x,y,z,rx)=>{b.m.visible=xr&&on;if(on){b.m.position.set(CO.x+x,CO.y+y,CO.z+z);b.m.rotation.set(rx,0,0)}};
-  place(BT.help,!!G&&!card&&!over,-.3,.86,-.2,-1.0);place(BT.center,!card&&!over,.3,.86,-.2,-1.0);
+  place(BT.help,!!G&&!card&&!over&&!menu,-.3,.86,-.2,-1.0);place(BT.center,!card&&!over&&!menu,.3,.86,-.2,-1.0);place(BT.menu,!!G&&!card&&!over&&!menu,0,.86,-.2,-1.0);
+  place(BT.mCont,menu,-.15,1.0,-.42,-.55);place(BT.mRe,menu,.15,1.0,-.42,-.55);place(BT.mBai,menu,-.15,.89,-.42,-.55);place(BT.mSair,menu,.15,.89,-.42,-.55);place(BT.endMenu,over,0,.87,-.42,-.55);
+  {const s=BT.help.m.visible&&G&&G.lastBlock&&G.lastBlock.help&&now-G.blockT<8000?1+.1*Math.sin(now*.012):1;BT.help.m.scale.setScalar(s)}
   place(BT.go,card,hb?-.15:0,.98,-.42,-.55);place(BT.help2,hb,.15,.98,-.42,-.55);place(BT.other,over,0,.98,-.42,-.55);
   const gl=hb?'OUTRO CAMINHO':'CONTINUAR';if(BT.go.label!==gl){BT.go.label=gl;BT.go.draw(false)}
   if(!xr)return;const pts=[];
@@ -726,11 +739,11 @@ function handDrive(dt,sc,slope,now){HD.pushing=false;if(!renderer.xr.isPresentin
 function readVR(){vrIn.up=vrIn.down=vrIn.brake=false;vrIn.turn=0;const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources){const gp=src.gamepad;if(!gp||src.hand)continue;const ax=gp.axes,sx=ax[2]||0,sy=ax[3]||0,b=gp.buttons,h=src.handedness;
     if(sy<-.6||b[0]?.pressed)vrIn.up=true;if(sy>.6)vrIn.down=true;
     if(h==='right'){if(Math.abs(sx)>.7&&snapReady){P.yaw-=Math.sign(sx)*Math.PI/6;snapReady=false}else if(Math.abs(sx)<.3)snapReady=true}else vrIn.turn+=-sx*(Math.abs(sx)>.25?1:0);
-    const key=h+'|';const a=b[4]?.pressed,bb=b[5]?.pressed;if(a&&!btnPrev[key+'a']&&G&&G.card)closeCard();else if(b[0]?.pressed&&!btnPrev[key+'t']&&G&&G.card)closeCard();if(bb&&!btnPrev[key+'b']&&G)askHelp();btnPrev[key+'a']=a;btnPrev[key+'b']=bb;btnPrev[key+'t']=b[0]?.pressed}
+    const key=h+'|';const a=b[4]?.pressed,bb=b[5]?.pressed;if(a&&!btnPrev[key+'a']&&G&&G.menu)closeMenu();else if(a&&!btnPrev[key+'a']&&G&&G.card)closeCard();else if(b[0]?.pressed&&!btnPrev[key+'t']&&G&&G.card)closeCard();if(bb&&!btnPrev[key+'b']&&G){if(h==='left'){if(G.menu)closeMenu();else openMenu()}else if(!G.menu)askHelp()}btnPrev[key+'a']=a;btnPrev[key+'b']=bb;btnPrev[key+'t']=b[0]?.pressed}
   if(G&&G.card){vrIn.up=false}}
 let xrOK=false;
 if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{xrOK=ok;$('bVR').hidden=!ok}).catch(()=>{});
-$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros e empurre para a frente. Volte a mão e empurre de novo. Botões AJUDA e CENTRALIZAR ficam nos braços da cadeira.',9000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.mode[0]=HD.mode[1]=0;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
+$('bVR').onclick=async()=>{initAudio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);sun.shadow.mapSize.set(1024,1024);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}camera.position.set(0,0,0);camera.rotation.set(0,0,0);hudVR.m.visible=true;coT=0;if(!G)newGame('hoje');setTimeout(()=>toast('Segure os aros e empurre para a frente. Volte a mão e empurre de novo. Botões AJUDA, MENU e CENTRALIZAR ficam nos braços da cadeira. No MENU dá para recomeçar ou sair do VR.',9000),1500);s.addEventListener('end',()=>{CO.set(0,0,0);chair.position.set(0,0,0);chairNew.position.set(0,0,0);HD.mode[0]=HD.mode[1]=0;hudVR.m.visible=false;cardP.visible=false;camera.position.set(0,1.15,0)})}catch(e){toast('Não foi possível abrir o VR: '+(e.message||e.name),4000)}};
 
 /* ===== vida no bairro: pessoas, carros, ônibus, vento, pássaros, onomatopeias e detalhes ===== */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
